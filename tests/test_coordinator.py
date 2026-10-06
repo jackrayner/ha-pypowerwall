@@ -241,7 +241,7 @@ class TestBuildPowerwallKwargs:
             "host": "h",
             "gw_pwd": "g",
             "rsa_key_path": "/key.pem",
-            "pw_password": "legacy_password",
+            "password": "legacy_password",
             "timeout": POWERWALL_REQUEST_TIMEOUT,
         }
     
@@ -260,7 +260,7 @@ class TestBuildPowerwallKwargs:
             "host": "h",
             "gw_pwd": "g",
             "rsa_key_path": "/key.pem",
-            "pw_password": "legacy_password",
+            "password": "legacy_password",
             "wifi_host": "10.0.0.5",
             "timeout": POWERWALL_REQUEST_TIMEOUT,
         }
