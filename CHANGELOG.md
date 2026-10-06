@@ -1,5 +1,49 @@
 # Changelog
 
+## [0.9.0](https://github.com/BJReplay/hacs-pypowerwall/compare/0.8.0...0.9.0) (2026-10-06)
+
+
+### Features
+
+* add battery energy charged/discharged sensors for the Energy dashboard ([2a67898](https://github.com/BJReplay/hacs-pypowerwall/commit/2a67898d59e3cccf24b6601b38a120d7f1f52ce5))
+* add battery reserve and mode controls ([93d3d2f](https://github.com/BJReplay/hacs-pypowerwall/commit/93d3d2f0444e02ba07e6e103d6a858b041df14f1))
+* add British English (en-GB) locale, confirm US/metropolitan French baselines ([7c7e5fa](https://github.com/BJReplay/hacs-pypowerwall/commit/7c7e5fad4e78228c0c3067e32bdaab699e7681d3))
+* add French (fr) and British English (en-GB) locales ([78091f5](https://github.com/BJReplay/hacs-pypowerwall/commit/78091f58b37974d64bb8969aeb8658c132500bfd))
+* add French translation ([49f5499](https://github.com/BJReplay/hacs-pypowerwall/commit/49f549953bc7af55422d30ea402af2bc1106405a))
+* add grid import/export power sensors and estimated energy integration sensors ([d6a0797](https://github.com/BJReplay/hacs-pypowerwall/commit/d6a07977c8df86cec3ac2b84f5b91ebf7bb48ede))
+* add remaining pypowerwall write actions ([1ffa4be](https://github.com/BJReplay/hacs-pypowerwall/commit/1ffa4beac85d7b3cf2d2065c0d5f506f33e40eae))
+* add remaining pypowerwall write actions ([eee6478](https://github.com/BJReplay/hacs-pypowerwall/commit/eee647879e0a9ab7edacb1f321338d94b0cd2161))
+* add translations for all Home Assistant supported languages ([ace0dda](https://github.com/BJReplay/hacs-pypowerwall/commit/ace0dda057477d9deeab64f89dfd49cb580904ca))
+* add translations for all Home Assistant supported languages ([8c960dd](https://github.com/BJReplay/hacs-pypowerwall/commit/8c960dda8d38cb6498fba7364ba75ae2b0afc164))
+* add translations for all Home Assistant supported languages ([69f4077](https://github.com/BJReplay/hacs-pypowerwall/commit/69f4077a358cfa3b65f4f5780209543e4992cf01))
+* **config_flow:** add a reconfigure flow for connection settings ([5c16e95](https://github.com/BJReplay/hacs-pypowerwall/commit/5c16e953670e7dc631e62506fe044c741e1bc20e))
+* **deps:** keep manifest.json's pypowerwall pin in sync and gate v1r-only grid controls ([31f52fa](https://github.com/BJReplay/hacs-pypowerwall/commit/31f52fa685d836e672e3dbfedc36caade394ca06))
+* **deps:** keep manifest.json's pypowerwall pin in sync and gate v1r-only grid controls ([de029b5](https://github.com/BJReplay/hacs-pypowerwall/commit/de029b56f697461f51733e076e4e57ccced12ed2))
+* **i18n:** translate the reconfigure flow strings into all locales ([26b21bf](https://github.com/BJReplay/hacs-pypowerwall/commit/26b21bf341b621523bab55161a2a8bc7c4a09d69))
+* relax translation CI check ahead of full HA language coverage ([e61118a](https://github.com/BJReplay/hacs-pypowerwall/commit/e61118af373c974a1ab0c8a8a2eb9a675cbe7c8d))
+* split battery power into import/export sensors ([7a720a5](https://github.com/BJReplay/hacs-pypowerwall/commit/7a720a5fabd98fd3a5699cf1782bf517c77aac9d))
+* Support PW2 v1r ([29e937b](https://github.com/BJReplay/hacs-pypowerwall/commit/29e937b10851a5db06fb284f7f2272ea7b4c45ca))
+
+
+### Bug Fixes
+
+* address 6 code review findings in pypowerwall integration ([fa5a512](https://github.com/BJReplay/hacs-pypowerwall/commit/fa5a512ddff1a5232732f183337a9d880e256e91))
+* address code review findings in pypowerwall integration ([ebffe16](https://github.com/BJReplay/hacs-pypowerwall/commit/ebffe16929abfc64e1800144caa2fbf984a9a69c))
+* bump hacs.json minimum Home Assistant version to 2026.3.0 ([880c2f1](https://github.com/BJReplay/hacs-pypowerwall/commit/880c2f1de2b0ca744aa251bba001a8f149e689d2))
+* bump min HA version in hacs.json; docs: License and poll-interval range ([9f74957](https://github.com/BJReplay/hacs-pypowerwall/commit/9f74957364784c2da4e53ab788a622888ebd4582))
+* **deps:** bump pypowerwall from 0.16.2 to 0.17.3 ([e057533](https://github.com/BJReplay/hacs-pypowerwall/commit/e0575336e23ff841236374dd3daf689472bdcf28))
+* **deps:** bump pypowerwall from 0.16.2 to 0.17.3 ([b707248](https://github.com/BJReplay/hacs-pypowerwall/commit/b70724878ee86fb02214fdbb8dd1b902753dd6cf))
+* Ensure PW2 v1r TEDAPI registers Max Backup Service ([6488e4c](https://github.com/BJReplay/hacs-pypowerwall/commit/6488e4cbccf731ca1c3b1745ee8e59fd3a288a2d))
+* exclude CHANGELOG.md from markdownlint ([adddc64](https://github.com/BJReplay/hacs-pypowerwall/commit/adddc64f2e39ddf5072dac11670d1d642a12c8b8))
+* raise pypowerwall request timeout, quiet duplicate error logging ([dcc8f6b](https://github.com/BJReplay/hacs-pypowerwall/commit/dcc8f6bcaa7d3058666793873b69305242af5f2b))
+* raise pypowerwall request timeout, quiet duplicate error logging ([107d24b](https://github.com/BJReplay/hacs-pypowerwall/commit/107d24bc20b44a2af0daaa1bc376c549f9ed6f90))
+* remove bogus unit from uptime sensor ([b2202f8](https://github.com/BJReplay/hacs-pypowerwall/commit/b2202f86867871260fef9865d3641f2346ce32d7))
+* remove unused strings.json ([4402c2b](https://github.com/BJReplay/hacs-pypowerwall/commit/4402c2b16bc17718110191b3c9cb25d7a992e03b))
+* remove unused strings.json ([0cac5ff](https://github.com/BJReplay/hacs-pypowerwall/commit/0cac5ff729651d9d0b47e4bc511d10afe9f02462))
+* **tests:** use async_get_device_by_identifier instead of deprecated async_get_device ([0356ebf](https://github.com/BJReplay/hacs-pypowerwall/commit/0356ebf2ab240b89de0fbf21cb4cf78d3bd36cfc))
+* Update logos and icons ([027540e](https://github.com/BJReplay/hacs-pypowerwall/commit/027540ee4716deb424978718cf3952538f86407f))
+* Update logos and icons ([9536e88](https://github.com/BJReplay/hacs-pypowerwall/commit/9536e889dce37b1dbf67cf42fb30ca5dc4a13fdf))
+
 ## [0.8.0](https://github.com/jackrayner/hacs-pypowerwall/compare/0.7.0...0.8.0) (2026-09-13)
 
 
