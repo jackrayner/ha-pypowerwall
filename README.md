@@ -33,10 +33,20 @@ Poll interval defaults to 5s (60s for Cloud/FleetAPI, to avoid hammering Tesla's
 | **Cloud mode** | A directory containing a `.pypowerwall.auth` file | One-time setup *outside* Home Assistant: run `python -m pypowerwall setup` (or `setup -headless` if you can't open a browser on the machine) to log into your Tesla account and create that file, then point the integration at its directory. |
 | **FleetAPI** | A directory containing a `.pypowerwall.fleetapi` file | One-time setup outside Home Assistant: register an app at [developer.tesla.com](https://developer.tesla.com), then run `python -m pypowerwall.fleetapi setup` to complete the OAuth flow and create that file. |
 | **TEDAPI v1r LAN** | Gateway host + gateway password + an RSA private key path | One-time setup outside Home Assistant: run `python -m pypowerwall register` to generate and register an RSA-4096 key pair with the gateway (may require briefly power-cycling it to confirm), then point the integration at the resulting `.pem`. Powerwall 3 only. |
+| **TEDAPI v1r LAN (PW2)** | Gateway host + gateway password / Legacy Password + an RSA private key path | One-time setup outside Home Assistant: run `python -m pypowerwall register` to generate and register an RSA-4096 key pair with the gateway (may require briefly power-cycling it to confirm), then point the integration at the resulting `.pem`.  Powerwall 2 only. |
 
-Note: Cloud and FleetAPI modes poll Tesla's cloud API rather than the local gateway, even though the integration as a whole is classified `local_polling` in its manifest (Home Assistant only allows one `iot_class` per integration, and 4 of the 6 connection types above are genuinely local).
+> [!TIP]
+> If you have a Powerwall 2, depending on the age and type of your gateway (especially if you have an older Gateway 1), you may require one or both of the Gateway password (full gateway serial number staring with `S`), and/or the Customer password or the Legacy Customer Password as set up in the Tesla One app by _your installer_ or someone you know who knows how to log into your gateway using the Tesla One app.  Always place the Customer password / Powerwall legacy password in password protected field, and the Gateway password - which is typically the Gateway serial number - found on the QR code on the gateway - in the Gateway password field.
+>
+> You may need only the last five characters of the Gateway serial number.
+>
+> You will need at least one password, but which one you need, and in which format, may vary, depending on the age of your Gateway.  You may need to try several different combinations until you find the one that works.
 
-The three file-based modes (Cloud, FleetAPI, TEDAPI v1r) authenticate via an artifact pypowerwall's own CLI setup tools produce — Tesla's login flow needs a real browser (or a token you paste in headlessly), so there's no way to complete it from a single Home Assistant form. Run the relevant `setup`/`register` command once, on any machine, then tell the integration where the resulting file lives (it just needs to be readable from wherever Home Assistant runs).
+Note: Cloud and FleetAPI modes poll Tesla's cloud API rather than the local gateway, even though the integration as a whole is classified `local_polling` in its manifest (Home Assistant only allows one `iot_class` per integration, and 5 of the 7 connection types above are genuinely local).
+
+The three file-based modes (Cloud, FleetAPI, TEDAPI v1r) authenticate via an artifact pypowerwall's own CLI setup tools produce — Tesla's login flow needs a real browser (or a token you paste in headlessly), so there's currently no way to complete it from a single Home Assistant form. Run the relevant `setup`/`register` command once, on any machine, then tell the integration where the resulting file lives (it just needs to be readable from wherever Home Assistant runs).
+
+The fields that accept locations for the RSA key or the FleetAPI auth accept absolute paths: e.g. /config/pypowerwall/tedapi_rsa_private.pem if you have created a pypowerwall folder under your config folder.
 
 ### Localization
 
