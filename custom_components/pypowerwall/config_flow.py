@@ -158,10 +158,15 @@ class PypowerwallConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             data = {CONF_CONN_TYPE: conn_type, **user_input}
-            if conn_type == CONN_TYPE_TEDAPI_V1R_PW2 and not (
-                data.get(CONF_GW_PWD) or data.get(CONF_PW_PASSWORD)
-            ):
-                errors["base"] = "missing_password"
+            # Check required for password for PW2 v1r mode, as either password may be supplied, 
+            # so both are optional in the schema for this connection type only.
+            # If neither are supplied, we must raise an error.  Other connection types
+            # handle this at the schema level.
+            if conn_type == CONN_TYPE_TEDAPI_V1R_PW2:
+                gw_pw = data.get(CONF_GW_PWD)
+                cl_pw = data.get(CONF_PW_PASSWORD)
+                if not gw_pw and not cl_pw:
+                    errors["base"] = "missing_password"
             try:
                 din, site_name = await _validate_input(self.hass, conn_type, data)
             except PowerwallConnectionError:
