@@ -158,10 +158,8 @@ class PypowerwallConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             data = {CONF_CONN_TYPE: conn_type, **user_input}
-            if (
-                conn_type == CONN_TYPE_TEDAPI_V1R_PW2
-                and not data.get(CONF_GW_PWD)
-                and not data.get(CONF_PW_PASSWORD)
+            if conn_type == CONN_TYPE_TEDAPI_V1R_PW2 and not (
+                data.get(CONF_GW_PWD) or data.get(CONF_PW_PASSWORD)
             ):
                 errors["base"] = "missing_password"
             try:
