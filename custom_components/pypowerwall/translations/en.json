@@ -93,14 +93,14 @@
         "description": "Full-protobuf LAN access for Powerwall 2, using a pre-registered RSA key. Requires a one-time setup performed outside Home Assistant first: run `python -m pypowerwall register` to generate and register an RSA-4096 key pair with the gateway (this may require briefly power-cycling the gateway to confirm), then point this at the resulting private key file.",
         "data": {
           "host": "Host",
-          "gw_pwd": "Gateway password",
+          "gw_pwd": "Gateway password (may be optional for some Powerwall 2 gateways)",
           "rsa_key_path": "RSA private key path",
           "wifi_host": "WiFi fallback host (optional)",
           "password": "Powerwall legacy password (may be required for some Powerwall 2 gateways)"
         },
         "data_description": {
           "host": "Hostname or IP address of the Powerwall gateway",
-          "gw_pwd": "Full gateway Wi-Fi password printed on the QR label",
+          "gw_pwd": "Full gateway Wi-Fi password printed on the QR label (may be optional for some Powerwall 2 gateways)",
           "rsa_key_path": "Full path relative to HA root to the RSA-4096 private key PEM file produced by `python -m pypowerwall register`",
           "wifi_host": "Alternate WiFi TEDAPI host to fall back to",
           "password": "Powerwall legacy password (may be required for some Powerwall 2 gateways)"
@@ -133,6 +133,7 @@
     },
     "error": {
       "cannot_connect": "Failed to connect. Check the connection details and try again.",
+      "missing_password": "A password is required for this connection type. Enter the gateway password or customer login / legacy password.",
       "unknown": "Unexpected error"
     },
     "abort": {

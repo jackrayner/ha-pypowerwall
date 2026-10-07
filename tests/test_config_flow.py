@@ -214,13 +214,54 @@ async def test_tedapi_v1r_pw2_flow_success(hass: HomeAssistant) -> None:
     assert result2["type"] == "create_entry"
     assert result2["data"][CONF_CONN_TYPE] == CONN_TYPE_TEDAPI_V1R_PW2
 
+async def test_tedapi_v1r_pw2_flow_gw_pwd_only_success(hass: HomeAssistant) -> None:
+    with patch(CONNECT_TARGET, return_value=make_fake_pw()):
+        result = await _select_menu(hass, await _start_menu(hass), CONN_TYPE_TEDAPI_V1R_PW2)
+        result2 = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_HOST: "192.168.91.1",
+                CONF_GW_PWD: "secret",
+                CONF_RSA_KEY_PATH: "/config/pypowerwall/tedapi_rsa_private.pem",
+            },
+        )
 
+    assert result2["type"] == "create_entry"
+    assert result2["data"][CONF_CONN_TYPE] == CONN_TYPE_TEDAPI_V1R_PW2
+
+async def test_tedapi_v1r_pw2_flow_password_only_success(hass: HomeAssistant) -> None:
+    with patch(CONNECT_TARGET, return_value=make_fake_pw()):
+        result = await _select_menu(hass, await _start_menu(hass), CONN_TYPE_TEDAPI_V1R_PW2)
+        result2 = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_HOST: "192.168.91.1",
+                CONF_RSA_KEY_PATH: "/config/pypowerwall/tedapi_rsa_private.pem",
+                CONF_PW_PASSWORD: "legacy_password",
+            },
+        )
+
+    assert result2["type"] == "create_entry"
+    assert result2["data"][CONF_CONN_TYPE] == CONN_TYPE_TEDAPI_V1R_PW2
+
+async def test_tedapi_v1r_pw2_flow_failure(hass: HomeAssistant) -> None:
+    with patch(CONNECT_TARGET, return_value=make_fake_pw()):
+        result = await _select_menu(hass, await _start_menu(hass), CONN_TYPE_TEDAPI_V1R_PW2)
+        result2 = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_HOST: "192.168.91.1",
+                CONF_RSA_KEY_PATH: "/config/pypowerwall/tedapi_rsa_private.pem",
+            },
+        )
+
+    assert result2["type"] == "form"
+    assert result2["errors"] == {"base": "missing_password"}
 
 def _scan_interval_default(result) -> int:
     schema = result["data_schema"].schema
     (marker,) = (key for key in schema if key == "scan_interval")
     return marker.default()
-
 
 async def test_options_flow_defaults_to_cloud_interval_for_cloud_entry(
     hass: HomeAssistant,

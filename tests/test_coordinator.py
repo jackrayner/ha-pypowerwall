@@ -265,6 +265,22 @@ class TestBuildPowerwallKwargs:
             "timeout": POWERWALL_REQUEST_TIMEOUT,
         }
 
+    def test_tedapi_v1r_pw2_gw1(self):
+        kwargs = build_powerwall_kwargs(
+            CONN_TYPE_TEDAPI_V1R_PW2,
+            {
+                CONF_HOST: "h",
+                CONF_RSA_KEY_PATH: "/key.pem",
+                CONF_PW_PASSWORD: "legacy_password",
+            },
+        )
+        assert kwargs == {
+            "host": "h",
+            "rsa_key_path": "/key.pem",
+            "password": "legacy_password",
+            "timeout": POWERWALL_REQUEST_TIMEOUT,
+        }
+    
     def test_cloud_minimal(self):
         kwargs = build_powerwall_kwargs(CONN_TYPE_CLOUD, {CONF_AUTHPATH: "/auth"})
         assert kwargs == {

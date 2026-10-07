@@ -74,7 +74,7 @@ STEP_TEDAPI_V1R_SCHEMA = vol.Schema(
 STEP_TEDAPI_V1R_PW2_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HOST): str,
-        vol.Required(CONF_GW_PWD): str,
+        vol.Optional(CONF_GW_PWD): str,
         vol.Optional(CONF_PW_PASSWORD): str,
         vol.Required(CONF_RSA_KEY_PATH): str,
         vol.Optional(CONF_WIFI_HOST): str,
@@ -158,6 +158,12 @@ class PypowerwallConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             data = {CONF_CONN_TYPE: conn_type, **user_input}
+            if (
+                conn_type == CONN_TYPE_TEDAPI_V1R_PW2
+                and not data.get(CONF_GW_PWD)
+                and not data.get(CONF_PW_PASSWORD)
+            ):
+                errors["base"] = "missing_password"
             try:
                 din, site_name = await _validate_input(self.hass, conn_type, data)
             except PowerwallConnectionError:
