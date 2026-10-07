@@ -178,9 +178,10 @@ def build_powerwall_kwargs(conn_type: str, data: Mapping[str, Any]) -> dict[str,
     elif conn_type == CONN_TYPE_TEDAPI_V1R or conn_type == CONN_TYPE_TEDAPI_V1R_PW2:
         kwargs = {
             "host": data[CONF_HOST],
-            "gw_pwd": data[CONF_GW_PWD],
             "rsa_key_path": data[CONF_RSA_KEY_PATH],
         }
+        if data.get(CONF_GW_PWD):
+            kwargs["gw_pwd"] = data[CONF_GW_PWD]
         if data.get(CONF_WIFI_HOST):
             kwargs["wifi_host"] = data[CONF_WIFI_HOST]
         if data.get(CONF_PW_PASSWORD):
