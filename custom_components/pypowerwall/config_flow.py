@@ -158,27 +158,27 @@ class PypowerwallConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             data = {CONF_CONN_TYPE: conn_type, **user_input}
-            # Check required for password for PW2 v1r mode, as either password may be supplied, 
+            # Check required for password for PW2 v1r mode, as either password may be supplied,
             # so both are optional in the schema for this connection type only.
             # If neither are supplied, we must raise an error.  Other connection types
             # handle this at the schema level.
-            if conn_type == CONN_TYPE_TEDAPI_V1R_PW2:
-                gw_pw = data.get(CONF_GW_PWD)
-                cl_pw = data.get(CONF_PW_PASSWORD)
-                if not gw_pw and not cl_pw:
-                    errors["base"] = "missing_password"
-            try:
-                din, site_name = await _validate_input(self.hass, conn_type, data)
-            except PowerwallConnectionError:
-                errors["base"] = "cannot_connect"
-            except Exception:  # noqa: BLE001 - surface unexpected errors as a generic failure
-                _LOGGER.exception("Unexpected error validating Powerwall connection")
-                errors["base"] = "unknown"
+            if conn_type == CONN_TYPE_TEDAPI_V1R_PW2 and not (
+                data.get(CONF_GW_PWD) or data.get(CONF_PW_PASSWORD)
+            ):
+                errors["base"] = "missing_password"
             else:
-                await self.async_set_unique_id(din)
-                self._abort_if_unique_id_configured()
-                title = data.get(CONF_HOST) or site_name or f"Powerwall ({conn_type})"
-                return self.async_create_entry(title=title, data=data)
+                try:
+                    din, site_name = await _validate_input(self.hass, conn_type, data)
+                except PowerwallConnectionError:
+                    errors["base"] = "cannot_connect"
+                except Exception:  # noqa: BLE001 - surface unexpected errors as a generic failure
+                    _LOGGER.exception("Unexpected error validating Powerwall connection")
+                    errors["base"] = "unknown"
+                else:
+                    await self.async_set_unique_id(din)
+                    self._abort_if_unique_id_configured()
+                    title = data.get(CONF_HOST) or site_name or f"Powerwall ({conn_type})"
+                    return self.async_create_entry(title=title, data=data)
 
         return self.async_show_form(step_id=conn_type, data_schema=schema, errors=errors)
 
