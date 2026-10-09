@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/jackrayner/hacs-pypowerwall/compare/0.11.0...0.12.0) (2026-10-09)
+
+
+### Features
+
+* make the TEDAPI v1r passwords optional (at least one required) ([7e338a1](https://github.com/jackrayner/hacs-pypowerwall/commit/7e338a1d13d0277f95587ebc917718b821a0984a))
+
 ## [0.11.0](https://github.com/jackrayner/hacs-pypowerwall/compare/0.10.0...0.11.0) (2026-10-08)
 
 
