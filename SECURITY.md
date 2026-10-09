@@ -1,6 +1,6 @@
 # Security Policy
 
-`hacs-pypowerwall` is a small, solo-maintained hobby project. This policy is deliberately lightweight — there's no security team, no SLA, and no bug bounty, just one maintainer doing their best.
+`ha-pypowerwall` is a small, solo-maintained hobby project. This policy is deliberately lightweight — there's no security team, no SLA, and no bug bounty, just one maintainer doing their best.
 
 ## Reporting a vulnerability
 

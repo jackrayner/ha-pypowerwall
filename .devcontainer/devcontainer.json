@@ -1,5 +1,5 @@
 {
-  "name": "hacs-pypowerwall",
+  "name": "ha-pypowerwall",
   "image": "python:3.14",
   "postCreateCommand": "pip install -r requirements-dev.txt ruff && npm install -g markdownlint-cli2",
   "customizations": {
