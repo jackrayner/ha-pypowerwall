@@ -159,6 +159,7 @@
       "tariff_name": { "name": "टैरिफ़ का नाम" },
       "tariff_utility": { "name": "टैरिफ़ की यूटिलिटी" },
       "tariff_code": { "name": "टैरिफ़ कोड" },
+      "tariff_currency": { "name": "टैरिफ़ की मुद्रा" },
       "battery_temp": { "name": "{device} तापमान" },
       "fan_speed": { "name": "{device} फ़ैन {fan} गति" },
       "fan_duty": { "name": "{device} फ़ैन {fan} ड्यूटी साइकिल" }

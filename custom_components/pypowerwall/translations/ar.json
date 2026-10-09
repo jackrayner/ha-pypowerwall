@@ -159,6 +159,7 @@
       "tariff_name": { "name": "اسم التعرفة" },
       "tariff_utility": { "name": "مزود الكهرباء للتعرفة" },
       "tariff_code": { "name": "رمز التعرفة" },
+      "tariff_currency": { "name": "عملة التعرفة" },
       "battery_temp": { "name": "درجة حرارة {device}" },
       "fan_speed": { "name": "سرعة المروحة {fan} في {device}" },
       "fan_duty": { "name": "دورة تشغيل المروحة {fan} في {device}" }

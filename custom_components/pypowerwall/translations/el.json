@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Όνομα τιμολογίου" },
       "tariff_utility": { "name": "Πάροχος τιμολογίου" },
       "tariff_code": { "name": "Κωδικός τιμολογίου" },
+      "tariff_currency": { "name": "Νόμισμα τιμολογίου" },
       "battery_temp": { "name": "Θερμοκρασία {device}" },
       "fan_speed": { "name": "Ταχύτητα ανεμιστήρα {fan} {device}" },
       "fan_duty": { "name": "Κύκλος λειτουργίας ανεμιστήρα {fan} {device}" }

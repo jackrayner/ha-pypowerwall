@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Nome della tariffa" },
       "tariff_utility": { "name": "Fornitore della tariffa" },
       "tariff_code": { "name": "Codice della tariffa" },
+      "tariff_currency": { "name": "Valuta della tariffa" },
       "battery_temp": { "name": "Temperatura {device}" },
       "fan_speed": { "name": "Velocità ventola {fan} {device}" },
       "fan_duty": { "name": "Duty cycle ventola {fan} {device}" }

@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Tarifa nosaukums" },
       "tariff_utility": { "name": "Tarifa piegādātājs" },
       "tariff_code": { "name": "Tarifa kods" },
+      "tariff_currency": { "name": "Tarifa valūta" },
       "battery_temp": { "name": "{device} temperatūra" },
       "fan_speed": { "name": "{device} ventilators {fan} ātrums" },
       "fan_duty": { "name": "{device} ventilators {fan} darba cikls" }

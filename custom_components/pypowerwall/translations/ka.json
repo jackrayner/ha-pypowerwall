@@ -159,6 +159,7 @@
       "tariff_name": { "name": "ტარიფის სახელი" },
       "tariff_utility": { "name": "ტარიფის კომუნალური კომპანია" },
       "tariff_code": { "name": "ტარიფის კოდი" },
+      "tariff_currency": { "name": "ტარიფის ვალუტა" },
       "battery_temp": { "name": "{device}-ის ტემპერატურა" },
       "fan_speed": { "name": "{device}-ის ვენტილატორი {fan} სიჩქარე" },
       "fan_duty": { "name": "{device}-ის ვენტილატორი {fan} სამუშაო ციკლი" }

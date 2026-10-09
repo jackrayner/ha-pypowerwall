@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Emri i tarifës" },
       "tariff_utility": { "name": "Furnizuesi i tarifës" },
       "tariff_code": { "name": "Kodi i tarifës" },
+      "tariff_currency": { "name": "Monedha e tarifës" },
       "battery_temp": { "name": "Temperatura e {device}" },
       "fan_speed": { "name": "Shpejtësia e ventilatorit {fan} e {device}" },
       "fan_duty": { "name": "Cikli i punës i ventilatorit {fan} e {device}" }

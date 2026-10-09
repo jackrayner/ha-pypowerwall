@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Назва тарифу" },
       "tariff_utility": { "name": "Постачальник тарифу" },
       "tariff_code": { "name": "Код тарифу" },
+      "tariff_currency": { "name": "Валюта тарифу" },
       "battery_temp": { "name": "Температура {device}" },
       "fan_speed": { "name": "Швидкість вентилятора {fan} {device}" },
       "fan_duty": { "name": "Заповнення ШІМ вентилятора {fan} {device}" }

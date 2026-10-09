@@ -159,6 +159,7 @@
       "tariff_name": { "name": "電價方案名稱" },
       "tariff_utility": { "name": "電價方案電力公司" },
       "tariff_code": { "name": "電價方案代碼" },
+      "tariff_currency": { "name": "電價方案貨幣" },
       "battery_temp": { "name": "{device} 溫度" },
       "fan_speed": { "name": "{device} 風扇 {fan} 轉速" },
       "fan_duty": { "name": "{device} 風扇 {fan} 工作週期" }

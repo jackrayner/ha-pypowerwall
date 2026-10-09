@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Nom du tarif" },
       "tariff_utility": { "name": "Fournisseur du tarif" },
       "tariff_code": { "name": "Code du tarif" },
+      "tariff_currency": { "name": "Devise du tarif" },
       "battery_temp": { "name": "Température {device}" },
       "fan_speed": { "name": "Vitesse du ventilateur {fan} {device}" },
       "fan_duty": { "name": "Rapport cyclique du ventilateur {fan} {device}" }

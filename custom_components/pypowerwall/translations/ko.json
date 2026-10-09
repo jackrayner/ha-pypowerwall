@@ -159,6 +159,7 @@
       "tariff_name": { "name": "요금제 이름" },
       "tariff_utility": { "name": "요금제 전력 회사" },
       "tariff_code": { "name": "요금제 코드" },
+      "tariff_currency": { "name": "요금제 통화" },
       "battery_temp": { "name": "{device} 온도" },
       "fan_speed": { "name": "{device} 팬 {fan} 속도" },
       "fan_duty": { "name": "{device} 팬 {fan} 듀티" }

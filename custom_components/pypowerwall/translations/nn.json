@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Tariffnamn" },
       "tariff_utility": { "name": "Tariffselskap" },
       "tariff_code": { "name": "Tariffkode" },
+      "tariff_currency": { "name": "Tariffvaluta" },
       "battery_temp": { "name": "{device}-temperatur" },
       "fan_speed": { "name": "{device}-vifte {fan} fart" },
       "fan_duty": { "name": "{device}-vifte {fan} driftssyklus" }

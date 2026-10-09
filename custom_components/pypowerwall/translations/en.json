@@ -162,6 +162,7 @@
       "tariff_name": { "name": "Tariff name" },
       "tariff_utility": { "name": "Tariff utility" },
       "tariff_code": { "name": "Tariff code" },
+      "tariff_currency": { "name": "Tariff currency" },
       "battery_temp": { "name": "{device} temperature" },
       "fan_speed": { "name": "{device} fan {fan} speed" },
       "fan_duty": { "name": "{device} fan {fan} duty" }

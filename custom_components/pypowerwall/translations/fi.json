@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Hinnaston nimi" },
       "tariff_utility": { "name": "Hinnaston toimittaja" },
       "tariff_code": { "name": "Hinnaston koodi" },
+      "tariff_currency": { "name": "Hinnaston valuutta" },
       "battery_temp": { "name": "{device} lämpötila" },
       "fan_speed": { "name": "{device} tuuletin {fan} nopeus" },
       "fan_duty": { "name": "{device} tuuletin {fan} käyttösuhde" }

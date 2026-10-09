@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Nomo de la tarifo" },
       "tariff_utility": { "name": "Provizanto de la tarifo" },
       "tariff_code": { "name": "Kodo de la tarifo" },
+      "tariff_currency": { "name": "Valuto de la tarifo" },
       "battery_temp": { "name": "Temperaturo de {device}" },
       "fan_speed": { "name": "Rapido de ventolilo {fan} de {device}" },
       "fan_duty": { "name": "Labortempo de ventolilo {fan} de {device}" }

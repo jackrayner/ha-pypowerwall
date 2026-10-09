@@ -161,7 +161,12 @@ class TestFetchData:
 
 
 class TestTariff:
-    TARIFF = {"code": "SCE-TOU-PRIME", "name": "Time of Use Prime", "utility": "SCE"}
+    TARIFF = {
+        "code": "SCE-TOU-PRIME",
+        "name": "Time of Use Prime",
+        "utility": "SCE",
+        "currency": "USD",
+    }
 
     def test_polled_for_cloud_and_fleetapi(self):
         for conn_type in (CONN_TYPE_CLOUD, CONN_TYPE_FLEETAPI):
@@ -171,6 +176,7 @@ class TestTariff:
             assert data.tariff_name == "Time of Use Prime"
             assert data.tariff_utility == "SCE"
             assert data.tariff_code == "SCE-TOU-PRIME"
+            assert data.tariff_currency == "USD"
 
     def test_not_polled_for_tedapi(self):
         pw = _make_pw()
@@ -184,6 +190,7 @@ class TestTariff:
         data = _fetch_data(pw, CONN_TYPE_CLOUD)
         assert data.tariff_name is None
         assert data.tariff_code is None
+        assert data.tariff_currency is None
 
 
 class TestBuildPowerwallKwargs:

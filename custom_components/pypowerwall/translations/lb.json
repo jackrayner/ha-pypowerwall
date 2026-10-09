@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Tarifnumm" },
       "tariff_utility": { "name": "Tarifanbieter" },
       "tariff_code": { "name": "Tarifcode" },
+      "tariff_currency": { "name": "Tarifwährung" },
       "battery_temp": { "name": "{device} Temperatur" },
       "fan_speed": { "name": "{device} Ventilator {fan} Vitesse" },
       "fan_duty": { "name": "{device} Ventilator {fan} Tastgrad" }
