@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.2](https://github.com/jackrayner/ha-pypowerwall/compare/0.12.1...0.12.2) (2026-10-09)
+
+
+### Bug Fixes
+
+* point the manifest and docs at the renamed ha-pypowerwall repository ([74cf524](https://github.com/jackrayner/ha-pypowerwall/commit/74cf524b5227ce79ff281b82d8e0fa011caa6854))
+* point the manifest and docs at the renamed ha-pypowerwall repository ([154f475](https://github.com/jackrayner/ha-pypowerwall/commit/154f475d23477e6bd21253ccfb86e72d0d2cf49c))
+
 ## [0.12.1](https://github.com/jackrayner/hacs-pypowerwall/compare/0.12.0...0.12.1) (2026-10-09)
 
 
