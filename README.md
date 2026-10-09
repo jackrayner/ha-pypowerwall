@@ -80,7 +80,7 @@ The integration ships a translation file for every language Home Assistant suppo
 | Active alerts | sensor | count of active alerts; the alert names (e.g. `GridCodesWrite`) are in the `alerts` attribute, sorted, for templates and automations; see [`docs/alerts.md`](./docs/alerts.md) for what the known alerts mean |
 | Firmware version | sensor | diagnostic |
 | Uptime | sensor | diagnostic, seconds |
-| Tariff name, utility, code | sensor | diagnostic, the site's utility tariff from `get_tariff()` ([fields](https://github.com/jasonacox/pypowerwall/blob/v0.18.2/API.md#tesla-tariff-and-time-of-use-settings)). **Cloud and FleetAPI modes only.** |
+| Tariff name, utility, code, currency | sensor | diagnostic, the site's utility tariff from `get_tariff()` ([fields](https://github.com/jasonacox/pypowerwall/blob/v0.18.2/API.md#tesla-tariff-and-time-of-use-settings)). **Cloud and FleetAPI modes only.** |
 | `<device>` temperature | sensor | one per battery pack reported by `vitals()`, added dynamically |
 | `<device>` fan A/B speed, duty | sensor | **⚠️ Disabled by default.** Diagnostic RPM and drive duty-cycle (%) for each Powerwall 3 inverter fan, added dynamically. Needs a TEDAPI-backed mode with the default `V2024_06` API version ([why](https://github.com/jasonacox/pypowerwall/blob/v0.18.2/RELEASE.md)); not reported by Powerwall 2, Cloud, or FleetAPI. |
 | Reconnect to grid | button | physically closes the grid contactor, reconnecting the home to the utility grid |

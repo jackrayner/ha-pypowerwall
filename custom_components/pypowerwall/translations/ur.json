@@ -159,6 +159,7 @@
       "tariff_name": { "name": "ٹیرف کا نام" },
       "tariff_utility": { "name": "ٹیرف کی یوٹیلیٹی" },
       "tariff_code": { "name": "ٹیرف کوڈ" },
+      "tariff_currency": { "name": "ٹیرف کی کرنسی" },
       "battery_temp": { "name": "{device} کا درجہ حرارت" },
       "fan_speed": { "name": "{device} پنکھا {fan} کی رفتار" },
       "fan_duty": { "name": "{device} پنکھا {fan} کا ڈیوٹی سائیکل" }

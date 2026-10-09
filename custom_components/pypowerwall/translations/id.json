@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Nama tarif" },
       "tariff_utility": { "name": "Penyedia listrik tarif" },
       "tariff_code": { "name": "Kode tarif" },
+      "tariff_currency": { "name": "Mata uang tarif" },
       "battery_temp": { "name": "Suhu {device}" },
       "fan_speed": { "name": "Kecepatan kipas {fan} {device}" },
       "fan_duty": { "name": "Siklus kerja kipas {fan} {device}" }

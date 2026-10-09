@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Tarifaren izena" },
       "tariff_utility": { "name": "Tarifaren hornitzailea" },
       "tariff_code": { "name": "Tarifaren kodea" },
+      "tariff_currency": { "name": "Tarifaren moneta" },
       "battery_temp": { "name": "{device} tenperatura" },
       "fan_speed": { "name": "{device} haizagailua {fan} abiadura" },
       "fan_duty": { "name": "{device} haizagailua {fan} lan-zikloa" }

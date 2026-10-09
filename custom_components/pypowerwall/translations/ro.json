@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Numele tarifului" },
       "tariff_utility": { "name": "Furnizorul tarifului" },
       "tariff_code": { "name": "Codul tarifului" },
+      "tariff_currency": { "name": "Moneda tarifului" },
       "battery_temp": { "name": "Temperatură {device}" },
       "fan_speed": { "name": "Viteza ventilatorului {fan} {device}" },
       "fan_duty": { "name": "Ciclu de lucru ventilator {fan} {device}" }

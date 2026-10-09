@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Heiti gjaldskrár" },
       "tariff_utility": { "name": "Veita gjaldskrár" },
       "tariff_code": { "name": "Kóði gjaldskrár" },
+      "tariff_currency": { "name": "Gjaldmiðill gjaldskrár" },
       "battery_temp": { "name": "Hitastig {device}" },
       "fan_speed": { "name": "Hraði viftu {fan} {device}" },
       "fan_duty": { "name": "Vinnulota viftu {fan} {device}" }

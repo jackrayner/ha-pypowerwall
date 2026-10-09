@@ -159,6 +159,7 @@
       "tariff_name": { "name": "电价方案名称" },
       "tariff_utility": { "name": "电价方案供电公司" },
       "tariff_code": { "name": "电价方案代码" },
+      "tariff_currency": { "name": "电价方案货币" },
       "battery_temp": { "name": "{device}温度" },
       "fan_speed": { "name": "{device}风扇{fan}转速" },
       "fan_duty": { "name": "{device}风扇{fan}占空比" }

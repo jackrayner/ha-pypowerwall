@@ -159,6 +159,7 @@
       "tariff_name": { "name": "שם התעריף" },
       "tariff_utility": { "name": "ספק התעריף" },
       "tariff_code": { "name": "קוד התעריף" },
+      "tariff_currency": { "name": "מטבע התעריף" },
       "battery_temp": { "name": "טמפרטורת {device}" },
       "fan_speed": { "name": "מהירות מאוורר {fan} של {device}" },
       "fan_duty": { "name": "מחזור עבודה של מאוורר {fan} של {device}" }

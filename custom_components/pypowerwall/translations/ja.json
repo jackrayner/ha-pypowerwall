@@ -159,6 +159,7 @@
       "tariff_name": { "name": "料金プラン名" },
       "tariff_utility": { "name": "料金プランの電力会社" },
       "tariff_code": { "name": "料金プランコード" },
+      "tariff_currency": { "name": "料金プランの通貨" },
       "battery_temp": { "name": "{device}の温度" },
       "fan_speed": { "name": "{device}のファン{fan}の速度" },
       "fan_duty": { "name": "{device}のファン{fan}のデューティ比" }

@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Nome da tarifa" },
       "tariff_utility": { "name": "Compañía eléctrica da tarifa" },
       "tariff_code": { "name": "Código da tarifa" },
+      "tariff_currency": { "name": "Moeda da tarifa" },
       "battery_temp": { "name": "Temperatura de {device}" },
       "fan_speed": { "name": "Velocidade do ventilador {fan} de {device}" },
       "fan_duty": { "name": "Ciclo de traballo do ventilador {fan} de {device}" }

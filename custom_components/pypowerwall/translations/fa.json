@@ -159,6 +159,7 @@
       "tariff_name": { "name": "نام تعرفه" },
       "tariff_utility": { "name": "شرکت برق تعرفه" },
       "tariff_code": { "name": "کد تعرفه" },
+      "tariff_currency": { "name": "واحد پول تعرفه" },
       "battery_temp": { "name": "دمای {device}" },
       "fan_speed": { "name": "سرعت فن {fan} {device}" },
       "fan_duty": { "name": "چرخه وظیفه فن {fan} {device}" }

@@ -67,6 +67,7 @@ class PowerwallData:
     tariff_name: str | None = None
     tariff_utility: str | None = None
     tariff_code: str | None = None
+    tariff_currency: str | None = None
 
 
 FAN_SIGNALS = ("PCH_FanSpeed_A", "PCH_FanSpeed_B", "PCH_FanDuty_A", "PCH_FanDuty_B")
@@ -142,6 +143,7 @@ def _fetch_data(pw: pypowerwall.Powerwall, conn_type: str | None = None) -> Powe
             data.tariff_name = tariff.get("name")
             data.tariff_utility = tariff.get("utility")
             data.tariff_code = tariff.get("code")
+            data.tariff_currency = tariff.get("currency")
     return data
 
 

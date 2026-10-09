@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Název tarifu" },
       "tariff_utility": { "name": "Dodavatel tarifu" },
       "tariff_code": { "name": "Kód tarifu" },
+      "tariff_currency": { "name": "Měna tarifu" },
       "battery_temp": { "name": "Teplota {device}" },
       "fan_speed": { "name": "Rychlost ventilátoru {fan} {device}" },
       "fan_duty": { "name": "Střída ventilátoru {fan} {device}" }

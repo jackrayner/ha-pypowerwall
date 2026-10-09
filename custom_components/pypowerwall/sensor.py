@@ -247,7 +247,7 @@ TARIFF_SENSOR_DESCRIPTIONS: tuple[PowerwallSensorDescription, ...] = tuple(
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda data, key=key: getattr(data, key),
     )
-    for key in ("tariff_name", "tariff_utility", "tariff_code")
+    for key in ("tariff_name", "tariff_utility", "tariff_code", "tariff_currency")
 )
 
 

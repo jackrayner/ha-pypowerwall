@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Tarifo pavadinimas" },
       "tariff_utility": { "name": "Tarifo tiekėjas" },
       "tariff_code": { "name": "Tarifo kodas" },
+      "tariff_currency": { "name": "Tarifo valiuta" },
       "battery_temp": { "name": "{device} temperatūra" },
       "fan_speed": { "name": "{device} ventiliatorius {fan} greitis" },
       "fan_duty": { "name": "{device} ventiliatorius {fan} darbo ciklas" }

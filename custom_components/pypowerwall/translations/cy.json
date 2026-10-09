@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Enw'r tariff" },
       "tariff_utility": { "name": "Cyfleustod y tariff" },
       "tariff_code": { "name": "Cod y tariff" },
+      "tariff_currency": { "name": "Arian cyfred y tariff" },
       "battery_temp": { "name": "Tymheredd {device}" },
       "fan_speed": { "name": "Cyflymder ffan {fan} {device}" },
       "fan_duty": { "name": "Cylchred ddyletswydd ffan {fan} {device}" }

@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Tên biểu giá" },
       "tariff_utility": { "name": "Nhà cung cấp điện của biểu giá" },
       "tariff_code": { "name": "Mã biểu giá" },
+      "tariff_currency": { "name": "Đơn vị tiền tệ của biểu giá" },
       "battery_temp": { "name": "Nhiệt độ {device}" },
       "fan_speed": { "name": "Tốc độ quạt {fan} của {device}" },
       "fan_duty": { "name": "Chu kỳ nhiệm vụ quạt {fan} của {device}" }

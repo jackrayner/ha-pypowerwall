@@ -159,6 +159,7 @@
       "tariff_name": { "name": "Назив тарифе" },
       "tariff_utility": { "name": "Снабдевач тарифе" },
       "tariff_code": { "name": "Шифра тарифе" },
+      "tariff_currency": { "name": "Валута тарифе" },
       "battery_temp": { "name": "Температура {device}" },
       "fan_speed": { "name": "Брзина вентилатора {fan} ({device})" },
       "fan_duty": { "name": "Радни циклус вентилатора {fan} ({device})" }

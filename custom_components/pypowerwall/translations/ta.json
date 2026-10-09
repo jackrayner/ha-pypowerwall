@@ -159,6 +159,7 @@
       "tariff_name": { "name": "கட்டணத் திட்டத்தின் பெயர்" },
       "tariff_utility": { "name": "கட்டணத் திட்டத்தின் மின் நிறுவனம்" },
       "tariff_code": { "name": "கட்டணத் திட்டக் குறியீடு" },
+      "tariff_currency": { "name": "கட்டணத் திட்ட நாணயம்" },
       "battery_temp": { "name": "{device} வெப்பநிலை" },
       "fan_speed": { "name": "{device} மின்விசிறி {fan} வேகம்" },
       "fan_duty": { "name": "{device} மின்விசிறி {fan} கடமை சுழற்சி" }
