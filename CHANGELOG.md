@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.1](https://github.com/jackrayner/hacs-pypowerwall/compare/0.12.0...0.12.1) (2026-10-09)
+
+
+### Bug Fixes
+
+* add a tariff currency sensor for Cloud and FleetAPI modes ([f116927](https://github.com/jackrayner/hacs-pypowerwall/commit/f116927ab0cec59383d89b9c284a93007e55bacb))
+* add a tariff currency sensor for Cloud and FleetAPI modes ([ae7c2c1](https://github.com/jackrayner/hacs-pypowerwall/commit/ae7c2c12b1a6289b1c1041a540905d45f3c77c43))
+
 ## [0.12.0](https://github.com/jackrayner/hacs-pypowerwall/compare/0.11.0...0.12.0) (2026-10-09)
 
 
