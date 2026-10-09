@@ -1,14 +1,14 @@
 # Contributing
 
-Thanks for taking an interest in `hacs-pypowerwall`. This is a small, solo-maintained project, so there's no formal process to wade through — just clone it, make your change, and open a PR. This document covers the practical bits: how to get a dev environment running, how tests and linting work, the shape of the code, and the one convention (commit message prefixes) that actually matters for the automation behind the scenes.
+Thanks for taking an interest in `ha-pypowerwall`. This is a small, solo-maintained project, so there's no formal process to wade through — just clone it, make your change, and open a PR. This document covers the practical bits: how to get a dev environment running, how tests and linting work, the shape of the code, and the one convention (commit message prefixes) that actually matters for the automation behind the scenes.
 
 If you want the deep-dive version of any of this — file-by-file rationale, the reasoning behind specific design decisions — see [`AGENTS.md`](./AGENTS.md) and its per-directory companions ([`custom_components/pypowerwall/AGENTS.md`](./custom_components/pypowerwall/AGENTS.md), [`tests/AGENTS.md`](./tests/AGENTS.md)). They were written for an AI coding agent so they're terser and more exhaustive than this doc, but equally valid reading for a human who wants the full picture.
 
 ## Getting started
 
 ```bash
-git clone https://github.com/jackrayner/hacs-pypowerwall.git
-cd hacs-pypowerwall
+git clone https://github.com/jackrayner/ha-pypowerwall.git
+cd ha-pypowerwall
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-dev.txt
