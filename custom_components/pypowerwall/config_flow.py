@@ -63,7 +63,8 @@ STEP_HYBRID_SCHEMA = vol.Schema(
 STEP_TEDAPI_V1R_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HOST): str,
-        vol.Required(CONF_GW_PWD): str,
+        vol.Optional(CONF_GW_PWD): str,
+        vol.Optional(CONF_PASSWORD): str,
         vol.Required(CONF_RSA_KEY_PATH): str,
         vol.Optional(CONF_WIFI_HOST): str,
     }
@@ -109,6 +110,10 @@ class PowerwallConnectionError(Exception):
     """Raised when the Powerwall gateway cannot be reached or authenticated."""
 
 
+class MissingPasswordError(Exception):
+    """Raised when a v1r entry supplies neither the gateway nor the customer password."""
+
+
 def _connect_and_get_info(conn_type: str, data: dict[str, Any]) -> tuple[str, str | None]:
     """Connect to the gateway and return (din, site_name), raising on any failure."""
     pw = pypowerwall.Powerwall(**build_powerwall_kwargs(conn_type, data))
@@ -123,7 +128,17 @@ def _connect_and_get_info(conn_type: str, data: dict[str, Any]) -> tuple[str, st
 async def _validate_input(
     hass: HomeAssistant, conn_type: str, data: dict[str, Any]
 ) -> tuple[str, str | None]:
-    """Validate the user input, returning (din, site_name)."""
+    """Validate the user input, returning (din, site_name).
+
+    v1r login takes either the gateway password or the customer password
+    (pypowerwall derives the latter from the last 5 characters of the former), so
+    both are optional in the schema -- voluptuous can't express "one of" -- and
+    at least one is enforced here.
+    """
+    if conn_type == CONN_TYPE_TEDAPI_V1R and not (
+        data.get(CONF_GW_PWD) or data.get(CONF_PASSWORD)
+    ):
+        raise MissingPasswordError
     return await hass.async_add_executor_job(_connect_and_get_info, conn_type, data)
 
 
@@ -146,6 +161,8 @@ class PypowerwallConfigFlow(ConfigFlow, domain=DOMAIN):
             data = {CONF_CONN_TYPE: conn_type, **user_input}
             try:
                 din, site_name = await _validate_input(self.hass, conn_type, data)
+            except MissingPasswordError:
+                errors["base"] = "missing_password"
             except PowerwallConnectionError:
                 errors["base"] = "cannot_connect"
             except Exception:  # noqa: BLE001 - surface unexpected errors as a generic failure
@@ -189,6 +206,8 @@ class PypowerwallConfigFlow(ConfigFlow, domain=DOMAIN):
             data = {CONF_CONN_TYPE: conn_type, **user_input}
             try:
                 din, _site_name = await _validate_input(self.hass, conn_type, data)
+            except MissingPasswordError:
+                errors["base"] = "missing_password"
             except PowerwallConnectionError:
                 errors["base"] = "cannot_connect"
             except Exception:  # noqa: BLE001 - surface unexpected errors as a generic failure

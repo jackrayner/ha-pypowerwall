@@ -74,16 +74,18 @@
         }
       },
       "tedapi_v1r": {
-        "description": "Full-protobuf LAN access for Powerwall 3, using a pre-registered RSA key. Requires a one-time setup performed outside Home Assistant first: run `python -m pypowerwall register` to generate and register an RSA-4096 key pair with the gateway (this may require briefly power-cycling the gateway to confirm), then point this at the resulting private key file.",
+        "description": "Full-protobuf LAN access for Powerwall 3 and Powerwall 2, using a pre-registered RSA key. Requires a one-time setup performed outside Home Assistant first: run `python -m pypowerwall register` to generate and register an RSA-4096 key pair with the gateway (this may require briefly power-cycling the gateway to confirm), then point this at the resulting private key file.",
         "data": {
           "host": "Host",
-          "gw_pwd": "Gateway password",
+          "gw_pwd": "Gateway password (optional)",
+          "password": "Customer password (optional)",
           "rsa_key_path": "RSA private key path",
           "wifi_host": "WiFi fallback host (optional)"
         },
         "data_description": {
           "host": "Hostname or IP address of the Powerwall gateway",
-          "gw_pwd": "Full gateway Wi-Fi password printed on the QR label",
+          "gw_pwd": "Full gateway Wi-Fi password printed on the QR label. At least one of this and the customer password is required",
+          "password": "Customer password. If omitted, the last 5 characters of the gateway password are used",
           "rsa_key_path": "Path to the RSA-4096 private key PEM file produced by `python -m pypowerwall register`",
           "wifi_host": "Alternate WiFi TEDAPI host to fall back to"
         }
@@ -115,6 +117,7 @@
     },
     "error": {
       "cannot_connect": "Failed to connect. Check the connection details and try again.",
+      "missing_password": "Enter the gateway password, the customer password, or both.",
       "unknown": "Unexpected error"
     },
     "abort": {

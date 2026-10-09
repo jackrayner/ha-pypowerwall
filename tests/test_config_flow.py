@@ -195,6 +195,62 @@ async def test_tedapi_v1r_flow_success(hass: HomeAssistant) -> None:
     assert result2["data"][CONF_CONN_TYPE] == CONN_TYPE_TEDAPI_V1R
 
 
+async def _v1r_flow(hass: HomeAssistant, extra: dict):
+    with patch(CONNECT_TARGET, return_value=make_fake_pw()):
+        result = await _select_menu(hass, await _start_menu(hass), CONN_TYPE_TEDAPI_V1R)
+        return await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_HOST: "192.168.91.1",
+                CONF_RSA_KEY_PATH: "/config/pypowerwall/tedapi_rsa_private.pem",
+                **extra,
+            },
+        )
+
+
+async def test_tedapi_v1r_flow_password_only_success(hass: HomeAssistant) -> None:
+    result = await _v1r_flow(hass, {CONF_PASSWORD: "customer-pw"})
+
+    assert result["type"] == "create_entry"
+    assert CONF_GW_PWD not in result["data"]
+    assert result["data"][CONF_PASSWORD] == "customer-pw"
+
+
+async def test_tedapi_v1r_flow_both_passwords_success(hass: HomeAssistant) -> None:
+    result = await _v1r_flow(hass, {CONF_GW_PWD: "secret", CONF_PASSWORD: "customer-pw"})
+
+    assert result["type"] == "create_entry"
+
+
+async def test_tedapi_v1r_flow_requires_a_password(hass: HomeAssistant) -> None:
+    result = await _v1r_flow(hass, {})
+
+    assert result["type"] == "form"
+    assert result["errors"] == {"base": "missing_password"}
+
+
+async def test_reconfigure_v1r_requires_a_password(hass: HomeAssistant) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id=DIN,
+        data={
+            CONF_CONN_TYPE: CONN_TYPE_TEDAPI_V1R,
+            CONF_HOST: "192.168.91.1",
+            CONF_GW_PWD: "old-pw",
+            CONF_RSA_KEY_PATH: "/key.pem",
+        },
+    )
+    entry.add_to_hass(hass)
+
+    result = await entry.start_reconfigure_flow(hass)
+    result2 = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_HOST: "192.168.91.1", CONF_RSA_KEY_PATH: "/key.pem"}
+    )
+
+    assert result2["type"] == "form"
+    assert result2["errors"] == {"base": "missing_password"}
+
+
 def _scan_interval_default(result) -> int:
     schema = result["data_schema"].schema
     (marker,) = (key for key in schema if key == "scan_interval")

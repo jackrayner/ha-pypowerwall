@@ -239,6 +239,31 @@ class TestBuildPowerwallKwargs:
             "timeout": POWERWALL_REQUEST_TIMEOUT,
         }
 
+    def test_tedapi_v1r_password_only(self):
+        kwargs = build_powerwall_kwargs(
+            CONN_TYPE_TEDAPI_V1R,
+            {CONF_HOST: "h", CONF_PASSWORD: "customer-pw", CONF_RSA_KEY_PATH: "/key.pem"},
+        )
+        assert kwargs == {
+            "host": "h",
+            "password": "customer-pw",
+            "rsa_key_path": "/key.pem",
+            "timeout": POWERWALL_REQUEST_TIMEOUT,
+        }
+
+    def test_tedapi_v1r_both_passwords(self):
+        kwargs = build_powerwall_kwargs(
+            CONN_TYPE_TEDAPI_V1R,
+            {
+                CONF_HOST: "h",
+                CONF_GW_PWD: "g",
+                CONF_PASSWORD: "customer-pw",
+                CONF_RSA_KEY_PATH: "/key.pem",
+            },
+        )
+        assert kwargs["gw_pwd"] == "g"
+        assert kwargs["password"] == "customer-pw"
+
     def test_tedapi_v1r_with_wifi_host(self):
         kwargs = build_powerwall_kwargs(
             CONN_TYPE_TEDAPI_V1R,
