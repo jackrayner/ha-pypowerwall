@@ -166,6 +166,9 @@
       "tariff_code": { "name": "Tariff code" },
       "tariff_currency": { "name": "Tariff currency" },
       "battery_temp": { "name": "{device} temperature" },
+      "string_power": { "name": "{device} string {string} power" },
+      "string_current": { "name": "{device} string {string} current" },
+      "string_voltage": { "name": "{device} string {string} voltage" },
       "fan_speed": { "name": "{device} fan {fan} speed" },
       "fan_duty": { "name": "{device} fan {fan} duty" }
     },

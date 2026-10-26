@@ -16,6 +16,8 @@ from homeassistant.const import (
     PERCENTAGE,
     REVOLUTIONS_PER_MINUTE,
     EntityCategory,
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
     UnitOfEnergy,
     UnitOfPower,
     UnitOfTemperature,
@@ -38,6 +40,34 @@ class PowerwallSensorDescription(SensorEntityDescription):
 
     value_fn: Callable[[PowerwallData], object]
     attributes_fn: Callable[[PowerwallData], dict[str, object]] | None = None
+
+
+STRING_SENSOR_DESCRIPTIONS = (
+    SensorEntityDescription(
+        key="power",
+        translation_key="string_power",
+        device_class=SensorDeviceClass.POWER,
+        native_unit_of_measurement=UnitOfPower.WATT,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
+    ),
+    SensorEntityDescription(
+        key="current",
+        translation_key="string_current",
+        device_class=SensorDeviceClass.CURRENT,
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=2,
+    ),
+    SensorEntityDescription(
+        key="voltage",
+        translation_key="string_voltage",
+        device_class=SensorDeviceClass.VOLTAGE,
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=1,
+    ),
+)
 
 
 def _battery_import_power(data: PowerwallData) -> float | None:
@@ -305,6 +335,27 @@ async def async_setup_entry(
     _add_new_fan_sensors()
     entry.async_on_unload(coordinator.async_add_listener(_add_new_fan_sensors))
 
+    known_string_sensors: set[tuple[str, str, str]] = set()
+
+    @callback
+    def _add_new_string_sensors() -> None:
+        new_sensors = []
+        for device, strings in coordinator.data.strings.items():
+            for string, readings in strings.items():
+                for description in STRING_SENSOR_DESCRIPTIONS:
+                    key = (device, string, description.key)
+                    if description.key not in readings or key in known_string_sensors:
+                        continue
+                    known_string_sensors.add(key)
+                    new_sensors.append(
+                        PowerwallStringSensor(coordinator, device, string, description)
+                    )
+        if new_sensors:
+            async_add_entities(new_sensors)
+
+    _add_new_string_sensors()
+    entry.async_on_unload(coordinator.async_add_listener(_add_new_string_sensors))
+
 
 class PowerwallSensor(PowerwallEntity, SensorEntity):
     """A pypowerwall sensor driven by a PowerwallSensorDescription."""
@@ -382,6 +433,36 @@ class PowerwallFanSensor(PowerwallEntity, SensorEntity):
     @property
     def available(self) -> bool:
         return super().available and self._device in self.coordinator.data.fans
+
+
+class PowerwallStringSensor(PowerwallEntity, SensorEntity):
+    """A solar string measurement identified by inverter DIN and string letter."""
+
+    def __init__(
+        self,
+        coordinator: PowerwallDataUpdateCoordinator,
+        device: str,
+        string: str,
+        description: SensorEntityDescription,
+    ) -> None:
+        super().__init__(coordinator)
+        self.entity_description = description
+        self._device = device
+        self._string = string
+        self._attr_unique_id = f"{self._din}_string_{device}_{string}_{description.key}"
+        self._attr_translation_placeholders = {"device": device, "string": string}
+
+    @property
+    def native_value(self) -> float | None:
+        return (
+            self.coordinator.data.strings.get(self._device, {})
+            .get(self._string, {})
+            .get(self.entity_description.key)
+        )
+
+    @property
+    def available(self) -> bool:
+        return super().available and self.native_value is not None
 
 
 class PowerwallEnergyIntegrationSensor(PowerwallEntity, RestoreEntity, SensorEntity):

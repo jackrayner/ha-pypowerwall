@@ -62,11 +62,45 @@ def _make_pw(**overrides):
     )
     pw.home.return_value = overrides.get("home_power", 1968.0)
     pw.temps.return_value = overrides.get("temps", {"TETHC--abc123": 24.5})
+    pw.vitals.return_value = overrides.get("vitals")
     pw.alerts.return_value = overrides.get("alerts", ["SystemConnectedToGrid"])
     return pw
 
 
 class TestFetchData:
+    def test_string_readings_share_vitals_poll_with_fans(self):
+        pw = _make_pw(
+            vitals={
+                "PVAC--primary": {
+                    "PVAC_PVMeasuredPower_A": 1200.5,
+                    "PVAC_PVCurrent_A": 3.25,
+                    "PVAC_PVMeasuredVoltage_A": 369.38,
+                    "PVAC_PVMeasuredPower_F": 0,
+                    "PVAC_PVCurrent_F": None,
+                    "PVAC_PvState_A": "Pv_Active",
+                    "PVAC_Pout": 5000,
+                },
+                "PVAC--secondary": {"PVAC_PVMeasuredPower_A": 700},
+                "TEPINV--primary": {"PCH_FanSpeed_A": 1200},
+                "PVAC--missing": None,
+                "PVAC--empty": {},
+            }
+        )
+        data = _fetch_data(pw, CONN_TYPE_TEDAPI_V1R)
+        assert data.strings == {
+            "PVAC--primary": {
+                "A": {"power": 1200.5, "current": 3.25, "voltage": 369.38},
+                "F": {"power": 0, "current": None},
+            },
+            "PVAC--secondary": {"A": {"power": 700}},
+        }
+        assert data.fans["TEPINV--primary"]["PCH_FanSpeed_A"] == 1200
+        pw.vitals.assert_called_once_with()
+
+    @pytest.mark.parametrize("vitals", [None, {}, {"TEPOD--battery": {"HVP_PackTempMax": 25}}])
+    def test_no_string_data(self, vitals):
+        assert _fetch_data(_make_pw(vitals=vitals)).strings == {}
+
     def test_maps_all_fields(self):
         pw = _make_pw()
         data = _fetch_data(pw)

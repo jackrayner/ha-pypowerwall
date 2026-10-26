@@ -13,8 +13,10 @@ from custom_components.pypowerwall.const import (
     CONF_AUTHPATH,
     CONF_CONN_TYPE,
     CONF_GW_PWD,
+    CONF_RSA_KEY_PATH,
     CONN_TYPE_CLOUD,
     CONN_TYPE_TEDAPI,
+    CONN_TYPE_TEDAPI_V1R,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL_CLOUD,
     DOMAIN,
@@ -75,6 +77,94 @@ async def test_setup_creates_entities_and_unload_removes_them(hass: HomeAssistan
     device = dr.async_get(hass).async_get_device_by_identifier((DOMAIN, DIN), entry.entry_id)
     assert device is not None
     assert device.serial_number == DIN
+
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.NOT_LOADED
+
+
+async def test_v1r_string_sensors_discovery_updates_and_recovery(hass: HomeAssistant) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id=DIN,
+        data={
+            **ENTRY_DATA,
+            CONF_CONN_TYPE: CONN_TYPE_TEDAPI_V1R,
+            CONF_RSA_KEY_PATH: "/config/pypowerwall.pem",
+        },
+    )
+    entry.add_to_hass(hass)
+    pw = make_fake_pw()
+    with patch(CONNECT_TARGET, return_value=pw):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+    registry = er.async_get(hass)
+
+    def string_entries():
+        return {
+            item.unique_id: item.entity_id
+            for item in er.async_entries_for_config_entry(registry, entry.entry_id)
+            if item.unique_id.startswith(f"{DIN}_string_")
+        }
+
+    assert string_entries() == {}
+    primary = {
+        f"{prefix}_{letter}": value
+        for letter in "ABCDEF"
+        for prefix, value in (
+            ("PVAC_PVMeasuredPower", 1200),
+            ("PVAC_PVCurrent", 3.0),
+            ("PVAC_PVMeasuredVoltage", 400.0),
+        )
+    }
+    pw.vitals.return_value = {"PVAC--primary": primary}
+    await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+
+    assert len(string_entries()) == 18
+    for letter in "ABCDEF":
+        for metric, value, unit in (
+            ("power", 1200, "W"),
+            ("current", 3, "A"),
+            ("voltage", 400, "V"),
+        ):
+            state = _entity_state(hass, "sensor", f"string_PVAC--primary_{letter}_{metric}")
+            assert float(state.state) == value
+            assert state.attributes["device_class"] == metric
+            assert state.attributes["unit_of_measurement"] == unit
+            assert state.attributes["state_class"] == "measurement"
+
+    original_entities = string_entries()
+    primary["PVAC_PVMeasuredPower_A"] = 0
+    primary["PVAC_PVCurrent_A"] = None
+    del primary["PVAC_PVMeasuredVoltage_A"]
+    pw.vitals.return_value = {
+        "PVAC--secondary": {"PVAC_PVMeasuredPower_A": 600},
+        "PVAC--primary": primary,
+    }
+    await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    assert len(string_entries()) == 19
+    assert original_entities.items() <= string_entries().items()
+    assert _entity_state(hass, "sensor", "string_PVAC--primary_A_power").state == "0"
+    for metric in ("current", "voltage"):
+        assert (
+            _entity_state(hass, "sensor", f"string_PVAC--primary_A_{metric}").state == "unavailable"
+        )
+    assert _entity_state(hass, "sensor", "string_PVAC--secondary_A_power").state == "600"
+
+    pw.vitals.return_value = None
+    await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    assert _entity_state(hass, "sensor", "string_PVAC--primary_A_power").state == "unavailable"
+
+    pw.vitals.return_value = {"PVAC--primary": primary}
+    await entry.runtime_data.async_refresh()
+    await hass.async_block_till_done()
+    assert _entity_state(hass, "sensor", "string_PVAC--primary_A_power").state == "0"
+    assert len(string_entries()) == 19
+    assert original_entities.items() <= string_entries().items()
 
     assert await hass.config_entries.async_unload(entry.entry_id)
     await hass.async_block_till_done()

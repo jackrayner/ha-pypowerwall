@@ -48,6 +48,7 @@ def make_fake_pw(**overrides) -> MagicMock:
     )
     pw.home.return_value = overrides.get("home_power", 550.0)
     pw.temps.return_value = overrides.get("temps", {"TETHC--1": 25.0})
+    pw.vitals.return_value = overrides.get("vitals")
     pw.alerts.return_value = overrides.get("alerts", [])
     pw.get_grid_charging.return_value = overrides.get("grid_charging", True)
     pw.get_grid_export.return_value = overrides.get("grid_export", "battery_ok")

@@ -68,6 +68,7 @@ class PowerwallData:
     home_power: float | None = None
     temps: dict[str, float] = field(default_factory=dict)
     fans: dict[str, dict[str, float | None]] = field(default_factory=dict)
+    strings: dict[str, dict[str, dict[str, float | None]]] = field(default_factory=dict)
     alerts: list[str] = field(default_factory=list)
     tariff_name: str | None = None
     tariff_utility: str | None = None
@@ -76,6 +77,30 @@ class PowerwallData:
 
 
 FAN_SIGNALS = ("PCH_FanSpeed_A", "PCH_FanSpeed_B", "PCH_FanDuty_A", "PCH_FanDuty_B")
+STRING_SIGNALS = {
+    "power": "PVAC_PVMeasuredPower",
+    "current": "PVAC_PVCurrent",
+    "voltage": "PVAC_PVMeasuredVoltage",
+}
+
+
+def _extract_strings(vitals: dict | None) -> dict[str, dict[str, dict[str, float | None]]]:
+    """Read per-inverter solar strings from the same vitals used by pw.strings()."""
+    strings: dict[str, dict[str, dict[str, float | None]]] = {}
+    if not isinstance(vitals, dict):
+        return strings
+    for device, block in vitals.items():
+        if not device.startswith("PVAC--") or not isinstance(block, dict):
+            continue
+        for string in "ABCDEF":
+            readings = {
+                metric: block[f"{signal}_{string}"]
+                for metric, signal in STRING_SIGNALS.items()
+                if f"{signal}_{string}" in block
+            }
+            if readings:
+                strings.setdefault(device, {})[string] = readings
+    return strings
 
 
 def _extract_fans(vitals: dict | None) -> dict[str, dict[str, float | None]]:
@@ -114,6 +139,7 @@ def _fetch_data(pw: pypowerwall.Powerwall, conn_type: str | None = None) -> Powe
     # across every connection mode (local/TEDAPI/hybrid/cloud/FleetAPI/v1r all
     # synthesize this same aggregates payload).
     battery_meter = pw.battery(verbose=True) or {}
+    vitals = pw.vitals()
     data = PowerwallData(
         site_name=pw.site_name(),
         version=pw.version(),
@@ -133,7 +159,8 @@ def _fetch_data(pw: pypowerwall.Powerwall, conn_type: str | None = None) -> Powe
         battery_energy_exported=_safe_round(_wh_to_kwh(battery_meter.get("energy_exported")), 3),
         home_power=_safe_round(pw.home(), 0),
         temps=pw.temps() or {},
-        fans=_extract_fans(pw.vitals()),
+        fans=_extract_fans(vitals),
+        strings=_extract_strings(vitals),
         alerts=sorted(pw.alerts() or []),
     )
     # get_grid_charging()/get_grid_export() require Cloud or FleetAPI mode; other
