@@ -1,7 +1,10 @@
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
+import pytest
+import voluptuous as vol
 from conftest import DIN, make_fake_pw
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -235,6 +238,150 @@ async def test_schedule_max_backup_defaults_duration_to_7200(hass: HomeAssistant
     await hass.async_block_till_done()
 
     pw.schedule_max_backup.assert_called_once_with(7200)
+
+
+@pytest.mark.parametrize("power", [-1000, 0, 1000, 12.5])
+@pytest.mark.parametrize("duration", [1, 30, 86400])
+async def test_dispatch_battery_power_returns_ack_and_refreshes(hass, power, duration):
+    pw = make_fake_pw()
+    await _setup_entry(hass, pw, V1R_ENTRY_DATA)
+    pw.battery.side_effect = lambda verbose=False: {"instant_power": 321} if verbose else 321
+
+    response = await hass.services.async_call(
+        DOMAIN,
+        "dispatch_battery_power",
+        {"power_watts": power, "duration_seconds": duration},
+        blocking=True,
+        return_response=True,
+    )
+    pw.dispatch_battery_power.assert_called_once_with(power, duration)
+    pw.resume_battery_operation.assert_not_called()
+    assert response == {"power_watts": power, "duration_seconds": duration}
+    assert hass.states.get(_entity_id(hass, "sensor", "battery_power")).state == "321"
+    pw.set_reserve.assert_not_called()
+    pw.set_mode.assert_not_called()
+    pw.cancel_max_backup.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        {},
+        {"power_watts": 1000},
+        {"duration_seconds": 30},
+        *(
+            {"power_watts": value, "duration_seconds": 30}
+            for value in (
+                True,
+                False,
+                "1000",
+                None,
+                float("nan"),
+                float("inf"),
+                -float("inf"),
+                10**1000,
+            )
+        ),
+        *(
+            {"power_watts": 1000, "duration_seconds": value}
+            for value in (True, False, "30", None, 0, -1, 86401, 30.5, 30.0)
+        ),
+    ],
+)
+async def test_invalid_dispatch_rejected_before_command(hass, data):
+    pw = make_fake_pw()
+    await _setup_entry(hass, pw, V1R_ENTRY_DATA)
+    with pytest.raises(vol.Invalid):
+        await hass.services.async_call(DOMAIN, "dispatch_battery_power", data, blocking=True)
+    pw.dispatch_battery_power.assert_not_called()
+    pw.resume_battery_operation.assert_not_called()
+
+
+@pytest.mark.parametrize("service", ["dispatch_battery_power", "resume_battery_operation"])
+@pytest.mark.parametrize("failure", [None, OSError("offline")])
+async def test_battery_command_failure_is_reported(hass, service, failure):
+    pw = make_fake_pw()
+    entry = await _setup_entry(hass, pw, V1R_ENTRY_DATA)
+    method = getattr(pw, service)
+    method.side_effect = failure
+    method.return_value = None
+    data = (
+        {"power_watts": 1000, "duration_seconds": 30} if service == "dispatch_battery_power" else {}
+    )
+    with patch.object(
+        entry.runtime_data, "async_request_refresh", new_callable=AsyncMock
+    ) as refresh:
+        with pytest.raises(HomeAssistantError) as error:
+            await hass.services.async_call(DOMAIN, service, data, blocking=True)
+        assert error.value.translation_key == "battery_dispatch_failed"
+        refresh.assert_not_called()
+    method.assert_called_once()
+
+
+async def test_resume_uses_current_client_and_refreshes(hass):
+    old_pw = make_fake_pw()
+    entry = await _setup_entry(hass, old_pw, V1R_ENTRY_DATA)
+    new_pw = make_fake_pw(battery_power=75)
+    entry.runtime_data.pw = new_pw
+    response = await hass.services.async_call(
+        DOMAIN, "resume_battery_operation", {}, blocking=True, return_response=True
+    )
+    assert response == {"resume_battery_operation": True}
+    old_pw.resume_battery_operation.assert_not_called()
+    new_pw.resume_battery_operation.assert_called_once_with()
+    new_pw.cancel_max_backup.assert_not_called()
+    assert hass.states.get(_entity_id(hass, "sensor", "battery_power")).state == "75"
+
+
+@pytest.mark.parametrize("data", [ENTRY_DATA, CLOUD_ENTRY_DATA])
+async def test_battery_dispatch_services_are_v1r_only(hass, data):
+    await _setup_entry(hass, make_fake_pw(), data)
+    assert not hass.services.has_service(DOMAIN, "dispatch_battery_power")
+    assert not hass.services.has_service(DOMAIN, "resume_battery_operation")
+
+
+@pytest.mark.parametrize("service", ["dispatch_battery_power", "resume_battery_operation"])
+async def test_battery_dispatch_target_selection_and_unload(hass, service):
+    pw_a, pw_b = make_fake_pw(), make_fake_pw(din="SECOND_DIN")
+    entry_a = await _setup_entry(hass, pw_a, V1R_ENTRY_DATA)
+    entry_b = MockConfigEntry(domain=DOMAIN, unique_id="SECOND_DIN", data=V1R_ENTRY_DATA)
+    entry_b.add_to_hass(hass)
+    with patch(CONNECT_TARGET, return_value=pw_b):
+        assert await hass.config_entries.async_setup(entry_b.entry_id)
+        await hass.async_block_till_done()
+
+    data = (
+        {"power_watts": 1000, "duration_seconds": 30} if service == "dispatch_battery_power" else {}
+    )
+    for target, translation_key in (
+        ({}, "battery_dispatch_target_required"),
+        ({"config_entry_id": "missing"}, "battery_dispatch_invalid_target"),
+    ):
+        with pytest.raises(ServiceValidationError) as error:
+            await hass.services.async_call(DOMAIN, service, data | target, blocking=True)
+        assert error.value.translation_key == translation_key
+    getattr(pw_a, service).assert_not_called()
+    getattr(pw_b, service).assert_not_called()
+
+    await hass.services.async_call(
+        DOMAIN, service, data | {"config_entry_id": entry_a.entry_id}, blocking=True
+    )
+    getattr(pw_a, service).assert_called_once()
+    getattr(pw_b, service).assert_not_called()
+
+    assert await hass.config_entries.async_unload(entry_a.entry_id)
+    await hass.async_block_till_done()
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            DOMAIN, service, data | {"config_entry_id": entry_a.entry_id}, blocking=True
+        )
+    await hass.services.async_call(DOMAIN, service, data, blocking=True)
+    getattr(pw_b, service).assert_called_once()
+
+    assert await hass.config_entries.async_unload(entry_b.entry_id)
+    await hass.async_block_till_done()
+    assert not hass.services.has_service(DOMAIN, "dispatch_battery_power")
+    assert not hass.services.has_service(DOMAIN, "resume_battery_operation")
 
 
 async def test_v1r_entry_has_no_cloud_only_entities(hass: HomeAssistant) -> None:

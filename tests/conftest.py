@@ -53,6 +53,11 @@ def make_fake_pw(**overrides) -> MagicMock:
     pw.get_grid_export.return_value = overrides.get("grid_export", "battery_ok")
     pw.schedule_max_backup.return_value = {"result": "ok"}
     pw.cancel_max_backup.return_value = {"result": "ok"}
+    pw.dispatch_battery_power.side_effect = lambda power, duration: {
+        "power_watts": power,
+        "duration_seconds": duration,
+    }
+    pw.resume_battery_operation.return_value = {"resume_battery_operation": True}
     pw.go_off_grid.return_value = {"result": "ok"}
     pw.reconnect_grid.return_value = {"result": "ok"}
     return pw
