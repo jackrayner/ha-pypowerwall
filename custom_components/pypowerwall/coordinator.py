@@ -53,6 +53,8 @@ class PowerwallData:
     uptime: str | None = None
     grid_status: str | None = None
     grid_connected: bool | None = None
+    max_backup_active: bool | None = None
+    backup_events: list[dict[str, Any]] | None = None
     battery_level: float | None = None
     battery_level_app: float | None = None
     battery_reserve: float | None = None
@@ -113,6 +115,34 @@ def _wh_to_kwh(value: float | None) -> float | None:
     return value / 1000
 
 
+def _manual_backup_active(events: dict | None) -> bool | None:
+    if not isinstance(events, dict) or "manual_backup" not in events:
+        return None
+    manual_backup = events["manual_backup"]
+    if manual_backup is None:
+        return False
+    if isinstance(manual_backup, dict) and isinstance(manual_backup.get("active"), bool):
+        return manual_backup["active"]
+    return None
+
+
+def _scheduled_backup_active(events: list[Any], now: float) -> bool | None:
+    """Report whether any gateway-scheduled backup window is active."""
+    incomplete = False
+    for event in events:
+        if not isinstance(event, dict):
+            incomplete = True
+            continue
+        start = event.get("start_time")
+        duration = event.get("duration_seconds")
+        if type(start) is not int or type(duration) is not int or start <= 0 or duration <= 0:
+            incomplete = True
+            continue
+        if start <= now < start + duration:
+            return True
+    return None if incomplete else False
+
+
 def _fetch_data(pw: pypowerwall.Powerwall, conn_type: str | None = None) -> PowerwallData:
     grid_status = pw.grid_status()
     # verbose=True returns the full /api/meters/aggregates entry for the battery meter
@@ -152,6 +182,17 @@ def _fetch_data(pw: pypowerwall.Powerwall, conn_type: str | None = None) -> Powe
         fans=_extract_fans(pw.vitals()),
         alerts=sorted(pw.alerts() or []),
     )
+    if conn_type == CONN_TYPE_TEDAPI_V1R:
+        backup_events = pw.get_backup_events()
+        manual_active = _manual_backup_active(backup_events)
+        scheduled_active = None
+        if isinstance(backup_events, dict) and isinstance(backup_events.get("backup_events"), list):
+            data.backup_events = backup_events["backup_events"]
+            scheduled_active = _scheduled_backup_active(data.backup_events, time.time())
+        if manual_active is True or scheduled_active is True:
+            data.max_backup_active = True
+        elif manual_active is False and scheduled_active is False:
+            data.max_backup_active = False
     # get_grid_charging()/get_grid_export() need Cloud, FleetAPI or TEDAPI v1r; other
     # backends log an error and return None on every poll, so only call them when
     # the entry is actually in one of those modes (see GRID_CONTROL_CONN_TYPES).
