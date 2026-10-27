@@ -63,10 +63,69 @@ def _make_pw(**overrides):
     pw.home.return_value = overrides.get("home_power", 1968.0)
     pw.temps.return_value = overrides.get("temps", {"TETHC--abc123": 24.5})
     pw.alerts.return_value = overrides.get("alerts", ["SystemConnectedToGrid"])
+    pw.get_backup_events.return_value = overrides.get(
+        "backup_events", {"manual_backup": None, "backup_events": []}
+    )
     return pw
 
 
 class TestFetchData:
+    @pytest.mark.parametrize(
+        ("events", "expected"),
+        [
+            ({"manual_backup": {"active": True}}, True),
+            ({"manual_backup": {"active": False}}, False),
+            ({"manual_backup": None, "backup_events": [{"name": "scheduled"}]}, False),
+            (None, None),
+            ({}, None),
+            ({"manual_backup": {}}, None),
+            ({"manual_backup": {"active": "false"}}, None),
+            ({"manual_backup": []}, None),
+        ],
+    )
+    def test_max_backup_status(self, events, expected):
+        pw = _make_pw(backup_events=events)
+        assert _fetch_data(pw, CONN_TYPE_TEDAPI_V1R).max_backup_active is expected
+        pw.get_backup_events.assert_called_once_with()
+
+    @pytest.mark.parametrize(
+        "events",
+        [
+            [],
+            [
+                {
+                    "id": "event-1",
+                    "name": "Test event",
+                    "start_time": 123,
+                    "duration_seconds": 3600,
+                    "priority": 5,
+                }
+            ],
+        ],
+    )
+    def test_backup_event_list_uses_same_poll(self, events):
+        pw = _make_pw(backup_events={"manual_backup": None, "backup_events": events})
+        data = _fetch_data(pw, CONN_TYPE_TEDAPI_V1R)
+        assert data.backup_events == events
+        assert data.max_backup_active is False
+        pw.get_backup_events.assert_called_once_with()
+
+    @pytest.mark.parametrize(
+        "response", [None, {}, {"backup_events": None}, {"backup_events": "invalid"}]
+    )
+    def test_missing_backup_event_list_is_unknown(self, response):
+        data = _fetch_data(_make_pw(backup_events=response), CONN_TYPE_TEDAPI_V1R)
+        assert data.backup_events is None
+
+    @pytest.mark.parametrize(
+        "conn_type",
+        [CONN_TYPE_LOCAL, CONN_TYPE_TEDAPI, CONN_TYPE_HYBRID, CONN_TYPE_CLOUD, CONN_TYPE_FLEETAPI],
+    )
+    def test_other_modes_do_not_poll_max_backup(self, conn_type):
+        pw = _make_pw()
+        assert _fetch_data(pw, conn_type).max_backup_active is None
+        pw.get_backup_events.assert_not_called()
+
     def test_maps_all_fields(self):
         pw = _make_pw()
         data = _fetch_data(pw)

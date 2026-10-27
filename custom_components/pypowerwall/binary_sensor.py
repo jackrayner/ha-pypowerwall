@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -14,6 +15,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import PypowerwallConfigEntry
+from .const import CONF_CONN_TYPE, CONN_TYPE_TEDAPI_V1R
 from .coordinator import PowerwallDataUpdateCoordinator
 from .entity import PowerwallEntity
 
@@ -83,6 +85,8 @@ async def async_setup_entry(
             ),
         ]
     )
+    if entry.data[CONF_CONN_TYPE] == CONN_TYPE_TEDAPI_V1R:
+        async_add_entities([PowerwallMaxBackupActiveBinarySensor(coordinator)])
 
 
 class PowerwallGridConnectedBinarySensor(PowerwallEntity, BinarySensorEntity):
@@ -98,6 +102,24 @@ class PowerwallGridConnectedBinarySensor(PowerwallEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool | None:
         return self.coordinator.data.grid_connected
+
+
+class PowerwallMaxBackupActiveBinarySensor(PowerwallEntity, BinarySensorEntity):
+    """Whether a manual max-backup event is active on the gateway."""
+
+    _attr_translation_key = "max_backup_active"
+
+    def __init__(self, coordinator: PowerwallDataUpdateCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{self._din}_max_backup_active"
+
+    @property
+    def is_on(self) -> bool | None:
+        return self.coordinator.data.max_backup_active
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return {"backup_events": self.coordinator.data.backup_events}
 
 
 class PowerwallAlertBinarySensor(PowerwallEntity, BinarySensorEntity):
