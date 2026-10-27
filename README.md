@@ -109,12 +109,35 @@ To add the battery to Home Assistant's Energy dashboard, go to Settings → Dash
 
 **⚠️ "Disconnect from grid" physically opens the Powerwall's grid contactor.** Pressing it islands the home from the utility grid: solar keeps producing and the battery serves home load, but there's a real-world ~30 second solar production dropout while the contactor switches over, and the home stays off-grid until "Reconnect to grid" is pressed (or the gateway is otherwise commanded to reconnect). Because a button press is irreversible-in-the-moment and affects the physical grid connection, this entity ships **disabled** — it will not appear as an active entity until you explicitly enable it via its entity settings (Settings → Devices & Services → Entities → find it → enable). Note that as of pypowerwall 0.16.1 this method isn't yet implemented by any backend (local/TEDAPI/hybrid/cloud/FleetAPI) and currently no-ops with a logged error regardless of connection mode; the entity is included as forward-compatible surface for whenever a backend adds support, and is intentionally not gated by connection type since none is currently known to work.
 
-Two more write actions are exposed as [Home Assistant actions/services](https://www.home-assistant.io/docs/scripts/service-calls/) rather than entities, since they're momentary rather than persistent state, and only available in **TEDAPI v1r LAN mode** (see pypowerwall's [backup events docs](https://github.com/jasonacox/pypowerwall/blob/v0.25.0/API.md#backup-events-v1r-mode-only)):
+The following write actions are exposed as [Home Assistant actions/services](https://www.home-assistant.io/docs/scripts/service-calls/) rather than entities, since they're momentary rather than persistent state, and only available in **TEDAPI v1r LAN mode** (see pypowerwall's [backup events docs](https://github.com/jasonacox/pypowerwall/blob/v0.25.0/API.md#backup-events-v1r-mode-only) and [battery dispatch docs](https://github.com/jasonacox/pypowerwall/blob/v0.25.0/API.md#timed-battery-dispatch-v1r-mode-only)):
 
 | Service | Fields | Notes |
 | --- | --- | --- |
 | `pypowerwall.schedule_max_backup` | `duration_seconds` (optional, default `7200`) | Starts a manual backup event (storm watch / max backup mode) for the given duration. |
 | `pypowerwall.cancel_max_backup` | none | Cancels the current manual backup event. |
+| `pypowerwall.dispatch_battery_power` | `power_watts`, `duration_seconds` (both required); `config_entry_id` (optional with one loaded v1r entry) | Requests battery power for 1–86400 whole seconds. Positive watts discharge, negative watts charge, and zero requests idle battery power. A new dispatch replaces the power and timer. |
+| `pypowerwall.resume_battery_operation` | `config_entry_id` (optional with one loaded v1r entry) | Releases a dispatch early and resumes the configured operating mode; also succeeds when no dispatch is active. Does not cancel a manual max-backup event. |
+
+**Battery dispatch: use at your own risk.** This undocumented Tesla command overrides backup reserve and grid export settings while running: discharge can drain below the reserve or export even when export is disabled. Charging can draw from the grid and may ignore the grid-charging setting; outage behavior is untested. These are upstream-documented risks, and the integration does not enforce those limits. The gateway resumes its configured mode at expiry; prefer short durations and renew only as needed. No dispatch is automatically restored after a Home Assistant restart.
+
+Both dispatch actions require a loaded v1r entry and a paired RSA key; firmware support and gateway power and duration limits apply. The gateway may reject values within the integration's allowed range; for example, a Powerwall 3 gateway rejected a duration above 3600 seconds (1 hour). With multiple loaded v1r entries, select `config_entry_id` explicitly. A rejected or unacknowledged command raises an action error. Successful commands refresh the sensors and optionally return the upstream acknowledgement through `response_variable`; that response describes the request, not measured power. Check the battery power sensor to observe the actual result.
+
+Example: request 1000 W discharge for 30 seconds, using the only loaded v1r entry:
+
+```yaml
+action: pypowerwall.dispatch_battery_power
+data:
+  power_watts: 1000
+  duration_seconds: 30
+response_variable: dispatch_ack
+```
+
+To release it before the duration ends:
+
+```yaml
+action: pypowerwall.resume_battery_operation
+data: {}
+```
 
 ### Automation examples
 
@@ -153,7 +176,7 @@ custom_components/pypowerwall/
 ├── select.py                # battery mode control, grid export control (Cloud/FleetAPI/v1r only)
 ├── switch.py                # grid charging control (Cloud/FleetAPI/v1r only)
 ├── button.py                # go off-grid / reconnect to grid (disconnect button disabled by default)
-├── services.yaml            # schema for schedule_max_backup / cancel_max_backup (v1r LAN mode only)
+├── services.yaml            # max-backup and timed battery dispatch actions (v1r LAN mode only)
 ├── brand/                 # icon.png / icon@2x.png (HA 2026.3+ reads this directly, no brands-repo PR needed)
 ├── translations/         # en.json + one file per HA-supported language; no strings.json (Core-only build artifact, unused by custom integrations)
 hacs.json

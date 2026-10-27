@@ -11,3 +11,35 @@ schedule_max_backup:
           mode: box
 
 cancel_max_backup: {}
+
+dispatch_battery_power:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: pypowerwall
+    power_watts:
+      required: true
+      example: 1000
+      selector:
+        number:
+          step: any
+          unit_of_measurement: W
+          mode: box
+    duration_seconds:
+      required: true
+      example: 30
+      selector:
+        number:
+          min: 1
+          max: 86400
+          step: 1
+          unit_of_measurement: seconds
+          mode: box
+
+resume_battery_operation:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: pypowerwall
