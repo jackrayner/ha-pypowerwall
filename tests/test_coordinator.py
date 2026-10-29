@@ -250,6 +250,7 @@ class TestBuildPowerwallKwargs:
             "host": "h",
             "gw_pwd": "g",
             "rsa_key_path": "/key.pem",
+            "failover": False,
             "timeout": POWERWALL_REQUEST_TIMEOUT,
         }
 
@@ -262,6 +263,7 @@ class TestBuildPowerwallKwargs:
             "host": "h",
             "password": "customer-pw",
             "rsa_key_path": "/key.pem",
+            "failover": False,
             "timeout": POWERWALL_REQUEST_TIMEOUT,
         }
 
@@ -347,12 +349,24 @@ class TestBuildPowerwallKwargs:
             "timeout": POWERWALL_REQUEST_TIMEOUT,
         }
 
-    def test_v1r_keeps_library_failover_default(self):
+    def test_v1r_with_wifi_host_keeps_library_failover_default(self):
+        kwargs = build_powerwall_kwargs(
+            CONN_TYPE_TEDAPI_V1R,
+            {
+                CONF_HOST: "h",
+                CONF_GW_PWD: "g",
+                CONF_RSA_KEY_PATH: "/key.pem",
+                CONF_WIFI_HOST: "192.168.91.1",
+            },
+        )
+        assert "failover" not in kwargs
+
+    def test_v1r_without_wifi_host_disables_failover(self):
         kwargs = build_powerwall_kwargs(
             CONN_TYPE_TEDAPI_V1R,
             {CONF_HOST: "h", CONF_GW_PWD: "g", CONF_RSA_KEY_PATH: "/key.pem"},
         )
-        assert "failover" not in kwargs
+        assert kwargs["failover"] is False
 
     def test_unknown_conn_type_raises(self):
         with pytest.raises(ValueError):

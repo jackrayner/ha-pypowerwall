@@ -134,6 +134,10 @@ class MissingPasswordError(Exception):
     """Raised when a v1r entry supplies neither the gateway nor the customer password."""
 
 
+class RsaKeyNotFoundError(Exception):
+    """Raised when a v1r entry's RSA private key path isn't a file Home Assistant can see."""
+
+
 def _connect_and_get_info(conn_type: str, data: dict[str, Any]) -> tuple[str, str | None]:
     """Connect to the gateway and return (din, site_name), raising on any failure."""
     pw = pypowerwall.Powerwall(**build_powerwall_kwargs(conn_type, data))
@@ -157,6 +161,14 @@ def _check_auth_cache(conn_type: str, data: dict[str, Any]) -> None:
         raise AuthCacheNotWritableError
 
 
+def _check_rsa_key(conn_type: str, data: dict[str, Any]) -> None:
+    """Fail with a specific error when the v1r RSA private key file doesn't exist."""
+    if conn_type != CONN_TYPE_TEDAPI_V1R:
+        return
+    if not os.path.isfile(os.path.expanduser(data[CONF_RSA_KEY_PATH])):
+        raise RsaKeyNotFoundError
+
+
 async def _validate_input(
     hass: HomeAssistant, conn_type: str, data: dict[str, Any]
 ) -> tuple[str, str | None]:
@@ -172,6 +184,7 @@ async def _validate_input(
     ):
         raise MissingPasswordError
     await hass.async_add_executor_job(_check_auth_cache, conn_type, data)
+    await hass.async_add_executor_job(_check_rsa_key, conn_type, data)
     return await hass.async_add_executor_job(_connect_and_get_info, conn_type, data)
 
 
@@ -196,6 +209,8 @@ class PypowerwallConfigFlow(ConfigFlow, domain=DOMAIN):
                 din, site_name = await _validate_input(self.hass, conn_type, data)
             except MissingPasswordError:
                 errors["base"] = "missing_password"
+            except RsaKeyNotFoundError:
+                errors["base"] = "rsa_key_not_found"
             except AuthCacheError as err:
                 errors["base"] = err.error_key
             except PowerwallConnectionError:
@@ -243,6 +258,8 @@ class PypowerwallConfigFlow(ConfigFlow, domain=DOMAIN):
                 din, _site_name = await _validate_input(self.hass, conn_type, data)
             except MissingPasswordError:
                 errors["base"] = "missing_password"
+            except RsaKeyNotFoundError:
+                errors["base"] = "rsa_key_not_found"
             except AuthCacheError as err:
                 errors["base"] = err.error_key
             except PowerwallConnectionError:
