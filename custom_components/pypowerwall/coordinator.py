@@ -285,7 +285,9 @@ def build_powerwall_kwargs(conn_type: str, data: Mapping[str, Any]) -> dict[str,
             kwargs["siteid"] = data[CONF_SITEID]
     else:
         raise ValueError(f"Unknown pypowerwall connection type: {conn_type}")
-    if conn_type != CONN_TYPE_TEDAPI_V1R:
+    # v1r's wifi_host fallback runs through pypowerwall's failover; without a
+    # wifi_host the only thing failover does is retry in FleetAPI/Cloud mode.
+    if conn_type != CONN_TYPE_TEDAPI_V1R or not data.get(CONF_WIFI_HOST):
         kwargs["failover"] = False
     kwargs["timeout"] = POWERWALL_REQUEST_TIMEOUT
     return kwargs

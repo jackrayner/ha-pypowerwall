@@ -245,7 +245,13 @@ async def test_reconfigure_cloud_rejects_a_missing_auth_file(
     assert result2["errors"] == {"base": "auth_cache_not_found"}
 
 
-async def test_tedapi_v1r_flow_success(hass: HomeAssistant) -> None:
+def _rsa_key(tmp_path) -> str:
+    key = tmp_path / "tedapi_rsa_private.pem"
+    key.write_text("key")
+    return str(key)
+
+
+async def test_tedapi_v1r_flow_success(hass: HomeAssistant, tmp_path) -> None:
     with patch(CONNECT_TARGET, return_value=make_fake_pw()):
         result = await _select_menu(hass, await _start_menu(hass), CONN_TYPE_TEDAPI_V1R)
         result2 = await hass.config_entries.flow.async_configure(
@@ -253,7 +259,7 @@ async def test_tedapi_v1r_flow_success(hass: HomeAssistant) -> None:
             {
                 CONF_HOST: "192.168.91.1",
                 CONF_GW_PWD: "secret",
-                CONF_RSA_KEY_PATH: "/config/pypowerwall/tedapi_rsa_private.pem",
+                CONF_RSA_KEY_PATH: _rsa_key(tmp_path),
             },
         )
 
@@ -261,38 +267,80 @@ async def test_tedapi_v1r_flow_success(hass: HomeAssistant) -> None:
     assert result2["data"][CONF_CONN_TYPE] == CONN_TYPE_TEDAPI_V1R
 
 
-async def _v1r_flow(hass: HomeAssistant, extra: dict):
-    with patch(CONNECT_TARGET, return_value=make_fake_pw()):
+async def _v1r_flow(hass: HomeAssistant, extra: dict, rsa_key_path: str):
+    with patch(CONNECT_TARGET, return_value=make_fake_pw()) as powerwall:
         result = await _select_menu(hass, await _start_menu(hass), CONN_TYPE_TEDAPI_V1R)
-        return await hass.config_entries.flow.async_configure(
+        result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
                 CONF_HOST: "192.168.91.1",
-                CONF_RSA_KEY_PATH: "/config/pypowerwall/tedapi_rsa_private.pem",
+                CONF_RSA_KEY_PATH: rsa_key_path,
                 **extra,
             },
         )
+    result2["powerwall"] = powerwall
+    return result2
 
 
-async def test_tedapi_v1r_flow_password_only_success(hass: HomeAssistant) -> None:
-    result = await _v1r_flow(hass, {CONF_PASSWORD: "customer-pw"})
+async def test_tedapi_v1r_flow_password_only_success(hass: HomeAssistant, tmp_path) -> None:
+    result = await _v1r_flow(hass, {CONF_PASSWORD: "customer-pw"}, _rsa_key(tmp_path))
 
     assert result["type"] == "create_entry"
     assert CONF_GW_PWD not in result["data"]
     assert result["data"][CONF_PASSWORD] == "customer-pw"
 
 
-async def test_tedapi_v1r_flow_both_passwords_success(hass: HomeAssistant) -> None:
-    result = await _v1r_flow(hass, {CONF_GW_PWD: "secret", CONF_PASSWORD: "customer-pw"})
+async def test_tedapi_v1r_flow_both_passwords_success(hass: HomeAssistant, tmp_path) -> None:
+    result = await _v1r_flow(
+        hass, {CONF_GW_PWD: "secret", CONF_PASSWORD: "customer-pw"}, _rsa_key(tmp_path)
+    )
 
     assert result["type"] == "create_entry"
 
 
-async def test_tedapi_v1r_flow_requires_a_password(hass: HomeAssistant) -> None:
-    result = await _v1r_flow(hass, {})
+async def test_tedapi_v1r_flow_requires_a_password(hass: HomeAssistant, tmp_path) -> None:
+    result = await _v1r_flow(hass, {}, _rsa_key(tmp_path))
 
     assert result["type"] == "form"
     assert result["errors"] == {"base": "missing_password"}
+
+
+async def test_tedapi_v1r_flow_rejects_a_missing_rsa_key(hass: HomeAssistant, tmp_path) -> None:
+    """A key path Home Assistant can't see never reaches pypowerwall."""
+    result = await _v1r_flow(
+        hass, {CONF_GW_PWD: "secret"}, str(tmp_path / "tedapi_rsa_private.pem")
+    )
+
+    assert result["type"] == "form"
+    assert result["errors"] == {"base": "rsa_key_not_found"}
+    result["powerwall"].assert_not_called()
+
+
+async def test_reconfigure_v1r_rejects_a_missing_rsa_key(hass: HomeAssistant, tmp_path) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id=DIN,
+        data={
+            CONF_CONN_TYPE: CONN_TYPE_TEDAPI_V1R,
+            CONF_HOST: "192.168.91.1",
+            CONF_GW_PWD: "pw",
+            CONF_RSA_KEY_PATH: "/key.pem",
+        },
+    )
+    entry.add_to_hass(hass)
+
+    result = await entry.start_reconfigure_flow(hass)
+    result2 = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            CONF_HOST: "192.168.91.1",
+            CONF_GW_PWD: "pw",
+            CONF_RSA_KEY_PATH: str(tmp_path / "missing.pem"),
+        },
+    )
+
+    assert result2["type"] == "form"
+    assert result2["errors"] == {"base": "rsa_key_not_found"}
 
 
 async def test_reconfigure_v1r_requires_a_password(hass: HomeAssistant) -> None:
