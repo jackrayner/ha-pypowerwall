@@ -32,8 +32,20 @@ def make_fake_pw(**overrides) -> MagicMock:
     pw.get_reserve.return_value = overrides.get("battery_reserve", 20.0)
     pw.get_mode.return_value = overrides.get("battery_mode", "self_consumption")
     pw.get_time_remaining.return_value = overrides.get("backup_time_remaining", 10.0)
-    pw.grid.return_value = overrides.get("grid_power", 100.0)
-    pw.solar.return_value = overrides.get("solar_power", 500.0)
+    grid_power = overrides.get("grid_power", 100.0)
+    grid_meter = {
+        "instant_power": grid_power,
+        "energy_imported": overrides.get("grid_energy_imported_wh", 2000.0),
+        "energy_exported": overrides.get("grid_energy_exported_wh", 1000.0),
+    }
+    pw.grid.side_effect = lambda verbose=False, m=grid_meter: m if verbose else m["instant_power"]
+    solar_power = overrides.get("solar_power", 500.0)
+    solar_meter = {
+        "instant_power": solar_power,
+        "energy_imported": overrides.get("solar_energy_imported_wh", 0),
+        "energy_exported": overrides.get("solar_energy_exported_wh", 4000.0),
+    }
+    pw.solar.side_effect = lambda verbose=False, m=solar_meter: m if verbose else m["instant_power"]
     battery_power = overrides.get("battery_power", -50.0)
     battery_energy_imported_wh = overrides.get("battery_energy_imported_wh", 5000.0)
     battery_energy_exported_wh = overrides.get("battery_energy_exported_wh", 3000.0)
@@ -46,7 +58,13 @@ def make_fake_pw(**overrides) -> MagicMock:
         if verbose
         else battery_power
     )
-    pw.home.return_value = overrides.get("home_power", 550.0)
+    home_power = overrides.get("home_power", 550.0)
+    home_meter = {
+        "instant_power": home_power,
+        "energy_imported": overrides.get("home_energy_imported_wh", 6000.0),
+        "energy_exported": overrides.get("home_energy_exported_wh", 0),
+    }
+    pw.home.side_effect = lambda verbose=False, m=home_meter: m if verbose else m["instant_power"]
     pw.temps.return_value = overrides.get("temps", {"TETHC--1": 25.0})
     pw.alerts.return_value = overrides.get("alerts", [])
     pw.get_grid_charging.return_value = overrides.get("grid_charging", True)

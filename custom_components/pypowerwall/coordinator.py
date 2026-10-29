@@ -65,6 +65,10 @@ class PowerwallData:
     battery_power: float | None = None
     battery_energy_imported: float | None = None
     battery_energy_exported: float | None = None
+    grid_energy_imported: float | None = None
+    grid_energy_exported: float | None = None
+    solar_energy_exported: float | None = None
+    home_energy_imported: float | None = None
     home_power: float | None = None
     temps: dict[str, float] = field(default_factory=dict)
     fans: dict[str, dict[str, float | None]] = field(default_factory=dict)
@@ -114,6 +118,9 @@ def _fetch_data(pw: pypowerwall.Powerwall, conn_type: str | None = None) -> Powe
     # across every connection mode (local/TEDAPI/hybrid/cloud/FleetAPI/v1r all
     # synthesize this same aggregates payload).
     battery_meter = pw.battery(verbose=True) or {}
+    grid_meter = pw.grid(verbose=True) or {}
+    solar_meter = pw.solar(verbose=True) or {}
+    home_meter = pw.home(verbose=True) or {}
     data = PowerwallData(
         site_name=pw.site_name(),
         version=pw.version(),
@@ -126,12 +133,16 @@ def _fetch_data(pw: pypowerwall.Powerwall, conn_type: str | None = None) -> Powe
         battery_reserve=_safe_round(pw.get_reserve(), 1),
         battery_mode=pw.get_mode(),
         backup_time_remaining=_safe_round(pw.get_time_remaining(), 1),
-        grid_power=_safe_round(pw.grid(), 0),
-        solar_power=_safe_round(pw.solar(), 0),
+        grid_power=_safe_round(grid_meter.get("instant_power"), 0),
+        solar_power=_safe_round(solar_meter.get("instant_power"), 0),
         battery_power=_safe_round(battery_meter.get("instant_power"), 0),
         battery_energy_imported=_safe_round(_wh_to_kwh(battery_meter.get("energy_imported")), 3),
         battery_energy_exported=_safe_round(_wh_to_kwh(battery_meter.get("energy_exported")), 3),
-        home_power=_safe_round(pw.home(), 0),
+        grid_energy_imported=_safe_round(_wh_to_kwh(grid_meter.get("energy_imported")), 3),
+        grid_energy_exported=_safe_round(_wh_to_kwh(grid_meter.get("energy_exported")), 3),
+        solar_energy_exported=_safe_round(_wh_to_kwh(solar_meter.get("energy_exported")), 3),
+        home_energy_imported=_safe_round(_wh_to_kwh(home_meter.get("energy_imported")), 3),
+        home_power=_safe_round(home_meter.get("instant_power"), 0),
         temps=pw.temps() or {},
         fans=_extract_fans(pw.vitals()),
         alerts=sorted(pw.alerts() or []),

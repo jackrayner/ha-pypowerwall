@@ -26,6 +26,17 @@ ENERGY_INTEGRATION_KEYS = [
 ]
 
 
+def _meter(power):
+    """A pw.grid/pw.home side_effect: the aggregates meter dict when verbose, else the power."""
+
+    def read(verbose=False):
+        if not verbose:
+            return power
+        return {"instant_power": power} if power is not None else None
+
+    return read
+
+
 def _entity_id(hass: HomeAssistant, unique_id: str) -> str:
     registry = er.async_get(hass)
     entity_id = registry.async_get_entity_id("sensor", DOMAIN, f"{DIN}_{unique_id}")
@@ -85,7 +96,7 @@ async def test_home_energy_accumulates_via_trapezoidal_integration(hass: HomeAss
 
     # First post-enable refresh has no previous sample yet, so it only records
     # a baseline -- no delta should be added.
-    pw.home.return_value = 1000.0
+    pw.home.side_effect = _meter(1000.0)
     with patch(UTCNOW_TARGET, return_value=t0):
         await entry.runtime_data.async_refresh()
     await hass.async_block_till_done()
@@ -93,7 +104,7 @@ async def test_home_energy_accumulates_via_trapezoidal_integration(hass: HomeAss
 
     # Power ramps from 1000W to 3000W over exactly 1 hour: trapezoidal average
     # is 2000W for 1h = 2.0 kWh.
-    pw.home.return_value = 3000.0
+    pw.home.side_effect = _meter(3000.0)
     with patch(UTCNOW_TARGET, return_value=t0 + timedelta(hours=1)):
         await entry.runtime_data.async_refresh()
     await hass.async_block_till_done()
@@ -101,7 +112,7 @@ async def test_home_energy_accumulates_via_trapezoidal_integration(hass: HomeAss
 
     # Power holds steady at 3000W for another 30 minutes: 3000W * 0.5h = 1.5 kWh,
     # added on top of the running total (2.0 + 1.5 = 3.5).
-    pw.home.return_value = 3000.0
+    pw.home.side_effect = _meter(3000.0)
     with patch(UTCNOW_TARGET, return_value=t0 + timedelta(hours=1, minutes=30)):
         await entry.runtime_data.async_refresh()
     await hass.async_block_till_done()
@@ -148,14 +159,14 @@ async def test_missing_source_reading_is_skipped_not_reset(hass: HomeAssistant) 
     await _enable_and_reload(hass, entry, pw, entity_id)
 
     t0 = datetime(2026, 1, 1, tzinfo=UTC)
-    pw.grid.return_value = 1000.0
+    pw.grid.side_effect = _meter(1000.0)
     with patch(UTCNOW_TARGET, return_value=t0):
         await entry.runtime_data.async_refresh()
     await hass.async_block_till_done()
 
     # A poll that fails to report grid power (None) is skipped: no delta, and
     # the previous (1000W @ t0) sample is left in place rather than cleared.
-    pw.grid.return_value = None
+    pw.grid.side_effect = _meter(None)
     with patch(UTCNOW_TARGET, return_value=t0 + timedelta(hours=1)):
         await entry.runtime_data.async_refresh()
     await hass.async_block_till_done()
@@ -163,7 +174,7 @@ async def test_missing_source_reading_is_skipped_not_reset(hass: HomeAssistant) 
 
     # Once readings resume, integration bridges from the last valid sample
     # (1000W @ t0) to the new one (3000W @ t0+2h): (1000+3000)/2 * 2h = 4 kWh.
-    pw.grid.return_value = 3000.0
+    pw.grid.side_effect = _meter(3000.0)
     with patch(UTCNOW_TARGET, return_value=t0 + timedelta(hours=2)):
         await entry.runtime_data.async_refresh()
     await hass.async_block_till_done()

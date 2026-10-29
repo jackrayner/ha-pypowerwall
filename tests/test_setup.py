@@ -66,6 +66,17 @@ async def test_setup_creates_entities_and_unload_removes_them(hass: HomeAssistan
     battery_energy_exported = _entity_state(hass, "sensor", "battery_energy_exported")
     assert float(battery_energy_exported.state) == 3.0
 
+    for key, kwh in (
+        ("grid_energy_imported", 2.0),
+        ("grid_energy_exported", 1.0),
+        ("solar_energy_exported", 4.0),
+        ("home_energy_imported", 6.0),
+    ):
+        counter = _entity_state(hass, "sensor", key)
+        assert float(counter.state) == kwh
+        assert counter.attributes["state_class"] == "total_increasing"
+        assert counter.attributes["device_class"] == "energy"
+
     grid_connected = _entity_state(hass, "binary_sensor", "grid_connected")
     assert grid_connected.state == "on"
 
