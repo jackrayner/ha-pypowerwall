@@ -79,6 +79,7 @@ The integration ships a translation file for every language Home Assistant suppo
 | Home power | sensor | W |
 | Grid status | sensor | `UP` / `DOWN` / `SYNCING` |
 | Grid connected | binary_sensor | connectivity, derived from grid status |
+| Max backup active | binary_sensor | **v1r LAN mode only.** Reports the manual max-backup event from `get_backup_events()`. The `backup_events` attribute exposes the scheduled-event list unchanged (`[]` when empty, `null` when missing or unreadable). The state is unknown when manual-backup status cannot be read; neither the state nor the list is a verified automatic Storm Watch indicator. |
 | Battery calibration | binary_sensor | **⚠️ Disabled by default.** Diagnostic, on while the gateway reports the `BatteryCalibration` alert (see [`docs/alerts.md`](./docs/alerts.md)). |
 | Battery fault | binary_sensor | **⚠️ Disabled by default.** Diagnostic, `problem` class, on while the gateway reports the `BatteryFault` alert (one or more inverter blocks faulted). |
 | Manually disconnected from grid | binary_sensor | **⚠️ Disabled by default.** Diagnostic, on while the gateway reports `ScheduledIslandContactorOpen`, which separates a deliberate disconnect from a grid outage. |

@@ -171,6 +171,7 @@
     },
     "binary_sensor": {
       "grid_connected": { "name": "Grid connected" },
+      "max_backup_active": { "name": "Max backup active" },
       "battery_calibration": { "name": "Battery calibration" },
       "battery_fault": { "name": "Battery fault" },
       "grid_manually_disconnected": { "name": "Manually disconnected from grid" },

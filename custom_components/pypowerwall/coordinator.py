@@ -53,6 +53,8 @@ class PowerwallData:
     uptime: str | None = None
     grid_status: str | None = None
     grid_connected: bool | None = None
+    max_backup_active: bool | None = None
+    backup_events: list[dict[str, Any]] | None = None
     battery_level: float | None = None
     battery_level_app: float | None = None
     battery_reserve: float | None = None
@@ -104,6 +106,17 @@ def _wh_to_kwh(value: float | None) -> float | None:
     return value / 1000 if value is not None else None
 
 
+def _max_backup_active(events: dict | None) -> bool | None:
+    if not isinstance(events, dict) or "manual_backup" not in events:
+        return None
+    manual_backup = events["manual_backup"]
+    if manual_backup is None:
+        return False
+    if isinstance(manual_backup, dict) and isinstance(manual_backup.get("active"), bool):
+        return manual_backup["active"]
+    return None
+
+
 def _fetch_data(pw: pypowerwall.Powerwall, conn_type: str | None = None) -> PowerwallData:
     grid_status = pw.grid_status()
     # verbose=True returns the full /api/meters/aggregates entry for the battery meter
@@ -136,6 +149,11 @@ def _fetch_data(pw: pypowerwall.Powerwall, conn_type: str | None = None) -> Powe
         fans=_extract_fans(pw.vitals()),
         alerts=sorted(pw.alerts() or []),
     )
+    if conn_type == CONN_TYPE_TEDAPI_V1R:
+        backup_events = pw.get_backup_events()
+        data.max_backup_active = _max_backup_active(backup_events)
+        if isinstance(backup_events, dict) and isinstance(backup_events.get("backup_events"), list):
+            data.backup_events = backup_events["backup_events"]
     # get_grid_charging()/get_grid_export() require Cloud or FleetAPI mode; other
     # backends log an error and return None on every poll, so only call them when
     # the entry is actually in one of those modes (see GRID_CONTROL_CONN_TYPES).
