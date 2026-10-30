@@ -172,6 +172,7 @@
     "binary_sensor": {
       "grid_connected": { "name": "Grid connected" },
       "battery_calibration": { "name": "Battery calibration" },
+      "calibration_requested": { "name": "Calibration requested" },
       "battery_fault": { "name": "Battery fault" },
       "grid_manually_disconnected": { "name": "Manually disconnected from grid" },
       "self_consumption_reserve_limit": { "name": "Battery at reserve limit" },
@@ -180,7 +181,9 @@
       "site_min_power_limited": { "name": "Site minimum power limited" }
     },
     "number": {
-      "battery_reserve": { "name": "Battery reserve" }
+      "battery_reserve": { "name": "Battery reserve" },
+      "power_watts": { "name": "Battery dispatch power" },
+      "duration_seconds": { "name": "Dispatch duration" }
     },
     "select": {
       "battery_mode": {
@@ -205,7 +208,9 @@
     },
     "button": {
       "go_off_grid": { "name": "Disconnect from grid" },
-      "reconnect_grid": { "name": "Reconnect to grid" }
+      "reconnect_grid": { "name": "Reconnect to grid" },
+      "start_dispatch": { "name": "Start dispatch" },
+      "resume_normal_operation": { "name": "Resume normal operation" }
     }
   },
   "services": {

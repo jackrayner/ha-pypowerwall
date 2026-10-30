@@ -188,6 +188,7 @@ async def test_cloud_entry_explicit_scan_interval_overrides_cloud_default(
     ("key", "alert"),
     [
         ("battery_calibration", "BatteryCalibration"),
+        ("calibration_requested", "CalibrationRequested"),
         ("battery_fault", "BatteryFault"),
         ("grid_manually_disconnected", "ScheduledIslandContactorOpen"),
         ("self_consumption_reserve_limit", "SelfConsumptionReservedLimit"),

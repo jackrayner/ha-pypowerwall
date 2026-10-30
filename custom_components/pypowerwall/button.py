@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import PypowerwallConfigEntry
-from .const import CONF_CONN_TYPE, GRID_ISLANDING_CONN_TYPES
+from .const import CONF_CONN_TYPE, CONN_TYPE_TEDAPI_V1R, GRID_ISLANDING_CONN_TYPES
 from .coordinator import PowerwallDataUpdateCoordinator
 from .entity import PowerwallEntity
 
@@ -18,13 +19,22 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up pypowerwall button entities from a config entry."""
-    if entry.data[CONF_CONN_TYPE] not in GRID_ISLANDING_CONN_TYPES:
-        return
     coordinator = entry.runtime_data
     async_add_entities(
         [
-            PowerwallGoOffGridButton(coordinator),
-            PowerwallReconnectGridButton(coordinator),
+            *(
+                [PowerwallGoOffGridButton(coordinator), PowerwallReconnectGridButton(coordinator)]
+                if entry.data[CONF_CONN_TYPE] in GRID_ISLANDING_CONN_TYPES
+                else []
+            ),
+            *(
+                [
+                    PowerwallStartDispatchButton(coordinator),
+                    PowerwallResumeNormalOperationButton(coordinator),
+                ]
+                if entry.data[CONF_CONN_TYPE] == CONN_TYPE_TEDAPI_V1R
+                else []
+            ),
         ]
     )
 
@@ -88,4 +98,51 @@ class PowerwallReconnectGridButton(PowerwallEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         await self.hass.async_add_executor_job(self.coordinator.pw.reconnect_grid)
+        await self.coordinator.async_request_refresh()
+
+
+class PowerwallStartDispatchButton(PowerwallEntity, ButtonEntity):
+    """Starts a manual battery dispatch using the configured power and duration."""
+
+    _attr_translation_key = "start_dispatch"
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(self, coordinator: PowerwallDataUpdateCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{self._din}_start_dispatch"
+
+    async def async_press(self) -> None:
+        power = self._get_number_value("power_watts")
+        duration = self._get_number_value("duration_seconds")
+        await self.hass.async_add_executor_job(
+            self.coordinator.pw.dispatch_battery_power,
+            power,
+            duration,
+        )
+        await self.coordinator.async_request_refresh()
+
+    def _get_number_value(self, unique_suffix: str) -> int:
+        entity_registry = er.async_get(self.hass)
+        entity_id = entity_registry.async_get_entity_id(
+            "number", "pypowerwall", f"{self._din}_{unique_suffix}"
+        )
+        if entity_id is None:
+            return 0
+        state = self.hass.states.get(entity_id)
+        if state is None or state.state in ("unknown", "unavailable"):
+            return 0
+        return int(float(state.state))
+
+
+class PowerwallResumeNormalOperationButton(PowerwallEntity, ButtonEntity):
+    """Returns the battery to its regular operating behavior."""
+
+    _attr_translation_key = "resume_normal_operation"
+
+    def __init__(self, coordinator: PowerwallDataUpdateCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{self._din}_resume_normal_operation"
+
+    async def async_press(self) -> None:
+        await self.hass.async_add_executor_job(self.coordinator.pw.resume_battery_operation)
         await self.coordinator.async_request_refresh()

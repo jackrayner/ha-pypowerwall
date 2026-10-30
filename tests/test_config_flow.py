@@ -208,9 +208,7 @@ async def test_file_based_flow_rejects_a_missing_auth_file(
 
 
 @pytest.mark.skipif(os.geteuid() == 0, reason="root ignores directory permissions")
-async def test_cloud_flow_rejects_a_read_only_auth_directory(
-    hass: HomeAssistant, tmp_path
-) -> None:
+async def test_cloud_flow_rejects_a_read_only_auth_directory(hass: HomeAssistant, tmp_path) -> None:
     authpath = _auth_dir(tmp_path, CONN_TYPE_CLOUD)
     tmp_path.chmod(0o500)
     try:
@@ -226,9 +224,7 @@ async def test_cloud_flow_rejects_a_read_only_auth_directory(
     powerwall.assert_not_called()
 
 
-async def test_reconfigure_cloud_rejects_a_missing_auth_file(
-    hass: HomeAssistant, tmp_path
-) -> None:
+async def test_reconfigure_cloud_rejects_a_missing_auth_file(hass: HomeAssistant, tmp_path) -> None:
     entry = MockConfigEntry(
         domain=DOMAIN,
         unique_id=DIN,

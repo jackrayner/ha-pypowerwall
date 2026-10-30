@@ -1,1 +1,1 @@
-pypowerwall==0.21.0
+pypowerwall==0.23.0

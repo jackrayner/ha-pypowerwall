@@ -34,7 +34,7 @@ Poll interval defaults to 5s (60s for Cloud/FleetAPI, to avoid hammering Tesla's
 | **Local login** | Gateway host + Customer Login email/password | Requires [Customer Login](https://www.tesla.com/support/energy/powerwall/mobile-app/monitoring-from-home-network) enabled on the gateway first (Tesla app or gateway web UI). |
 | **Cloud mode** | A directory containing a `.pypowerwall.auth` file | One-time setup *outside* Home Assistant: run `python -m pypowerwall setup` (or `setup -headless` if you can't open a browser on the machine) to log into your Tesla account and create that file, then point the integration at its directory. |
 | **FleetAPI** | A directory containing a `.pypowerwall.fleetapi` file | One-time setup outside Home Assistant: register an app at [developer.tesla.com](https://developer.tesla.com), then run `python -m pypowerwall.fleetapi setup` to complete the OAuth flow and create that file. |
-| **TEDAPI v1r LAN** | Gateway host + gateway password and/or customer password (at least one) + an RSA private key path | One-time setup outside Home Assistant: run `python -m pypowerwall register` to generate and register an RSA-4096 key pair with the gateway (may require briefly power-cycling it to confirm), then point the integration at the resulting `.pem` (see pypowerwall's [v1r setup guide](https://github.com/jasonacox/pypowerwall/blob/v0.21.0/README.md#v1r-lan-tedapi-setup---option-5-powerwall-3-wired-lan) and [key states](https://github.com/jasonacox/pypowerwall/blob/v0.21.0/README.md#key-states)). The optional WiFi fallback host is described under [v1r WiFi Fallback](https://github.com/jasonacox/pypowerwall/blob/v0.21.0/README.md#v1r-wifi-fallback). Powerwall 3, and Powerwall 2 with a Gateway 2 (reported working by pypowerwall users on firmware 26.26.4; other gateways untested). If only the gateway password is given, its last 5 characters are used as the customer login password. |
+| **TEDAPI v1r LAN** | Gateway host + gateway password and/or customer password (at least one) + an RSA private key path | One-time setup outside Home Assistant: run `python -m pypowerwall register` to generate and register an RSA-4096 key pair with the gateway (may require briefly power-cycling it to confirm), then point the integration at the resulting `.pem` (see pypowerwall's [v1r setup guide](https://github.com/jasonacox/pypowerwall/blob/v0.23.0/README.md#v1r-lan-tedapi-setup---option-5-powerwall-3-wired-lan) and [key states](https://github.com/jasonacox/pypowerwall/blob/v0.23.0/README.md#key-states)). The optional WiFi fallback host is described under [v1r WiFi Fallback](https://github.com/jasonacox/pypowerwall/blob/v0.23.0/README.md#v1r-wifi-fallback). Powerwall 3, and Powerwall 2 with a Gateway 2 (reported working by pypowerwall users on firmware 26.26.4; other gateways untested). If only the gateway password is given, its last 5 characters are used as the customer login password. |
 
 Note: Cloud and FleetAPI modes poll Tesla's cloud API rather than the local gateway, even though the integration as a whole is classified `local_polling` in its manifest (Home Assistant only allows one `iot_class` per integration, and 4 of the 6 connection types above are genuinely local).
 
@@ -58,6 +58,8 @@ The integration ships a translation file for every language Home Assistant suppo
 | Battery level | sensor | `%`, from customer API scale |
 | Battery level (Tesla app) | sensor | `%`, app-scaled value |
 | Battery reserve | number | `%`, 0-100, writable — sets the backup reserve |
+| Battery dispatch power | number | W, whole number, -10000 to 10000, default 500. **TEDAPI v1r LAN mode only.** |
+| Dispatch duration | number | seconds, whole number, 0 to 86400, default 30. **TEDAPI v1r LAN mode only.** |
 | Battery mode | select | `self_consumption` / `backup` / `autonomous`, writable — sets the operation mode |
 | Grid charging | switch | writable — allow/disallow charging the battery from the grid. **Cloud/FleetAPI mode only.** |
 | Grid export | select | `battery_ok` / `pv_only` / `never`, writable — sets the grid export policy. **Cloud/FleetAPI mode only.** |
@@ -89,11 +91,13 @@ The integration ships a translation file for every language Home Assistant suppo
 | Active alerts | sensor | count of active alerts; the alert names (e.g. `GridCodesWrite`) are in the `alerts` attribute, sorted, for templates and automations; see [`docs/alerts.md`](./docs/alerts.md) for what the known alerts mean |
 | Firmware version | sensor | diagnostic |
 | Uptime | sensor | diagnostic, seconds |
-| Tariff name, utility, code, currency | sensor | diagnostic, the site's utility tariff from `get_tariff()` ([fields](https://github.com/jasonacox/pypowerwall/blob/v0.21.0/API.md#tesla-tariff-and-time-of-use-settings)). **Cloud and FleetAPI modes only.** |
+| Tariff name, utility, code, currency | sensor | diagnostic, the site's utility tariff from `get_tariff()` ([fields](https://github.com/jasonacox/pypowerwall/blob/v0.23.0/API.md#tesla-tariff-and-time-of-use-settings)). **Cloud and FleetAPI modes only.** |
 | `<device>` temperature | sensor | one per battery pack reported by `vitals()`, added dynamically |
-| `<device>` fan A/B speed, duty | sensor | **⚠️ Disabled by default.** Diagnostic RPM and drive duty-cycle (%) for each Powerwall 3 inverter fan, added dynamically. Needs a TEDAPI-backed mode with the default `V2024_06` API version ([why](https://github.com/jasonacox/pypowerwall/blob/v0.21.0/RELEASE.md)); not reported by Powerwall 2, Cloud, or FleetAPI. |
+| `<device>` fan A/B speed, duty | sensor | **⚠️ Disabled by default.** Diagnostic RPM and drive duty-cycle (%) for each Powerwall 3 inverter fan, added dynamically. Needs a TEDAPI-backed mode with the default `V2024_06` API version ([why](https://github.com/jasonacox/pypowerwall/blob/v0.23.0/RELEASE.md)); not reported by Powerwall 2, Cloud, or FleetAPI. |
 | Reconnect to grid | button | physically closes the grid contactor, reconnecting the home to the utility grid |
 | Disconnect from grid | button | **⚠️ Disabled by default.** See callout below before enabling. |
+| Start dispatch | button | **⚠️ Disabled by default. TEDAPI v1r LAN mode only.**  See callout below before enabling. Starts battery dispatch using the configured power and duration. |
+| Resume normal operation | button | **TEDAPI v1r LAN mode only.** Returns the battery to normal operation. |
 
 ### Estimated energy sensors
 
@@ -105,7 +109,9 @@ To add the battery to Home Assistant's Energy dashboard, go to Settings → Dash
 
 **⚠️ "Disconnect from grid" physically opens the Powerwall's grid contactor.** Pressing it islands the home from the utility grid: solar keeps producing and the battery serves home load, but there's a real-world ~30 second solar production dropout while the contactor switches over, and the home stays off-grid until "Reconnect to grid" is pressed (or the gateway is otherwise commanded to reconnect). Because a button press is irreversible-in-the-moment and affects the physical grid connection, this entity ships **disabled** — it will not appear as an active entity until you explicitly enable it via its entity settings (Settings → Devices & Services → Entities → find it → enable). Note that as of pypowerwall 0.16.1 this method isn't yet implemented by any backend (local/TEDAPI/hybrid/cloud/FleetAPI) and currently no-ops with a logged error regardless of connection mode; the entity is included as forward-compatible surface for whenever a backend adds support, and is intentionally not gated by connection type since none is currently known to work.
 
-Two more write actions are exposed as [Home Assistant actions/services](https://www.home-assistant.io/docs/scripts/service-calls/) rather than entities, since they're momentary rather than persistent state, and only available in **TEDAPI v1r LAN mode** (see pypowerwall's [backup events docs](https://github.com/jasonacox/pypowerwall/blob/v0.21.0/API.md#backup-events-v1r-mode-only)):
+**⚠️ "Start dispatch" directly commands battery power**, using the "Battery dispatch power" and "Dispatch duration" number values. These dispatch controls are available only in **TEDAPI v1r LAN mode** and **could void or limit your Telsa warranty or cause your powerwall to dispatch below your reserve**. Start dispatch ships **disabled by default**; enable it in the entity settings (Settings → Devices & Services → Entities → find it → enable) before using it. "Resume normal operation" remains enabled by default as the recovery action.
+
+Two more write actions are exposed as [Home Assistant actions/services](https://www.home-assistant.io/docs/scripts/service-calls/) rather than entities, since they're momentary rather than persistent state, and only available in **TEDAPI v1r LAN mode** (see pypowerwall's [backup events docs](https://github.com/jasonacox/pypowerwall/blob/v0.23.0/API.md#backup-events-v1r-mode-only)):
 
 | Service | Fields | Notes |
 | --- | --- | --- |

@@ -167,9 +167,7 @@ async def _validate_input(
     both are optional in the schema -- voluptuous can't express "one of" -- and
     at least one is enforced here.
     """
-    if conn_type == CONN_TYPE_TEDAPI_V1R and not (
-        data.get(CONF_GW_PWD) or data.get(CONF_PASSWORD)
-    ):
+    if conn_type == CONN_TYPE_TEDAPI_V1R and not (data.get(CONF_GW_PWD) or data.get(CONF_PASSWORD)):
         raise MissingPasswordError
     await hass.async_add_executor_job(_check_auth_cache, conn_type, data)
     return await hass.async_add_executor_job(_connect_and_get_info, conn_type, data)

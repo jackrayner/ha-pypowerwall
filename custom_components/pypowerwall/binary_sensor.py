@@ -34,6 +34,11 @@ ALERT_BINARY_SENSOR_DESCRIPTIONS: tuple[PowerwallAlertBinarySensorDescription, .
         alert="BatteryCalibration",
     ),
     PowerwallAlertBinarySensorDescription(
+        key="calibration_requested",
+        translation_key="calibration_requested",
+        alert="CalibrationRequested",
+    ),
+    PowerwallAlertBinarySensorDescription(
         key="battery_fault",
         translation_key="battery_fault",
         device_class=BinarySensorDeviceClass.PROBLEM,

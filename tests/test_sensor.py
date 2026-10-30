@@ -134,6 +134,7 @@ class TestAlertAttributes:
 class TestAlertBinarySensors:
     CASES = [
         ("battery_calibration", "BatteryCalibration", None),
+        ("calibration_requested", "CalibrationRequested", None),
         ("battery_fault", "BatteryFault", "problem"),
         ("grid_manually_disconnected", "ScheduledIslandContactorOpen", "none"),
         ("self_consumption_reserve_limit", "SelfConsumptionReservedLimit", None),

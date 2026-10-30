@@ -64,6 +64,108 @@ async def test_reserve_number_reflects_state_and_writes_through(hass: HomeAssist
     assert float(state.state) == 35.0
 
 
+async def test_dispatch_number_defaults_and_updates_state(hass: HomeAssistant) -> None:
+    pw = make_fake_pw()
+    await _setup_entry(hass, pw, V1R_ENTRY_DATA)
+
+    power_id = _entity_id(hass, "number", "power_watts")
+    duration_id = _entity_id(hass, "number", "duration_seconds")
+
+    assert float(hass.states.get(power_id).state) == 500
+    assert float(hass.states.get(duration_id).state) == 30
+
+    await hass.services.async_call(
+        "number",
+        "set_value",
+        {"entity_id": power_id, "value": 750},
+        blocking=True,
+    )
+    await hass.services.async_call(
+        "number",
+        "set_value",
+        {"entity_id": duration_id, "value": 180},
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+    assert float(hass.states.get(power_id).state) == 750
+    assert float(hass.states.get(duration_id).state) == 180
+
+
+async def test_dispatch_buttons_use_number_values_and_resume_normal_operation(
+    hass: HomeAssistant,
+) -> None:
+    pw = make_fake_pw()
+    entry = await _setup_entry(hass, pw, V1R_ENTRY_DATA)
+
+    registry = er.async_get(hass)
+    power_id = _entity_id(hass, "number", "power_watts")
+    duration_id = _entity_id(hass, "number", "duration_seconds")
+    start_dispatch_id = _entity_id(hass, "button", "start_dispatch")
+    resume_normal_id = _entity_id(hass, "button", "resume_normal_operation")
+
+    registry.async_update_entity(start_dispatch_id, disabled_by=None)
+    await hass.async_block_till_done()
+
+    with patch(CONNECT_TARGET, return_value=pw):
+        await hass.config_entries.async_reload(entry.entry_id)
+        await hass.async_block_till_done()
+
+    await hass.services.async_call(
+        "number",
+        "set_value",
+        {"entity_id": power_id, "value": 1200},
+        blocking=True,
+    )
+    await hass.services.async_call(
+        "number",
+        "set_value",
+        {"entity_id": duration_id, "value": 240},
+        blocking=True,
+    )
+
+    await hass.services.async_call(
+        "button", "press", {"entity_id": start_dispatch_id}, blocking=True
+    )
+    await hass.async_block_till_done()
+
+    pw.dispatch_battery_power.assert_called_once_with(1200, 240)
+
+    await hass.services.async_call(
+        "button",
+        "press",
+        {"entity_id": resume_normal_id},
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+    pw.resume_battery_operation.assert_called_once_with()
+
+
+async def test_dispatch_button_is_disabled_by_default(hass: HomeAssistant) -> None:
+    pw = make_fake_pw()
+    await _setup_entry(hass, pw, V1R_ENTRY_DATA)
+
+    registry = er.async_get(hass)
+    entity_id = registry.async_get_entity_id("button", DOMAIN, f"{DIN}_start_dispatch")
+    assert entity_id is not None
+    assert registry.async_get(entity_id).disabled_by is not None
+
+
+async def test_tedapi_entry_has_no_dispatch_controls(hass: HomeAssistant) -> None:
+    pw = make_fake_pw()
+    await _setup_entry(hass, pw)
+
+    registry = er.async_get(hass)
+    for platform, unique_id in (
+        ("number", "power_watts"),
+        ("number", "duration_seconds"),
+        ("button", "start_dispatch"),
+        ("button", "resume_normal_operation"),
+    ):
+        assert registry.async_get_entity_id(platform, DOMAIN, f"{DIN}_{unique_id}") is None
+
+
 async def test_mode_select_reflects_state_and_writes_through(hass: HomeAssistant) -> None:
     pw = make_fake_pw(battery_mode="self_consumption")
     await _setup_entry(hass, pw)
@@ -157,6 +259,10 @@ async def test_cloud_entry_has_no_v1r_services(hass: HomeAssistant) -> None:
     registry = er.async_get(hass)
     assert registry.async_get_entity_id("button", DOMAIN, f"{DIN}_reconnect_grid") is None
     assert registry.async_get_entity_id("button", DOMAIN, f"{DIN}_go_off_grid") is None
+    assert registry.async_get_entity_id("number", DOMAIN, f"{DIN}_power_watts") is None
+    assert registry.async_get_entity_id("number", DOMAIN, f"{DIN}_duration_seconds") is None
+    assert registry.async_get_entity_id("button", DOMAIN, f"{DIN}_start_dispatch") is None
+    assert registry.async_get_entity_id("button", DOMAIN, f"{DIN}_resume_normal_operation") is None
 
 
 async def test_v1r_entry_registers_and_calls_max_backup_services(hass: HomeAssistant) -> None:
