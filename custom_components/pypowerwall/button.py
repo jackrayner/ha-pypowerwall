@@ -44,8 +44,7 @@ class PowerwallGoOffGridButton(PowerwallEntity, ButtonEntity):
     no-op (pypowerwall logs an error and returns None). This entity is
     therefore only created for CONN_TYPE_TEDAPI_V1R entries (see
     GRID_ISLANDING_CONN_TYPES in const.py) -- the same connection-type gating
-    pattern the Cloud/FleetAPI-only entities in switch.py/select.py use for
-    grid charging/export.
+    pattern the entities in switch.py/select.py use for grid charging/export.
 
     Disabled by default (_attr_entity_registry_enabled_default = False):
     given the real-world effect above, this must not be enabled without the

@@ -59,8 +59,8 @@ The integration ships a translation file for every language Home Assistant suppo
 | Battery level (Tesla app) | sensor | `%`, app-scaled value |
 | Battery reserve | number | `%`, 0-100, writable — sets the backup reserve |
 | Battery mode | select | `self_consumption` / `backup` / `autonomous`, writable — sets the operation mode |
-| Grid charging | switch | writable — allow/disallow charging the battery from the grid. **Cloud/FleetAPI mode only.** |
-| Grid export | select | `battery_ok` / `pv_only` / `never`, writable — sets the grid export policy. **Cloud/FleetAPI mode only.** |
+| Grid charging | switch | writable — allow/disallow charging the battery from the grid. **Cloud, FleetAPI and TEDAPI v1r LAN modes only** (in v1r it is a config write to the gateway over the LAN, no cloud account needed). |
+| Grid export | select | `battery_ok` / `pv_only` / `never`, writable — sets the grid export policy. **Cloud, FleetAPI and TEDAPI v1r LAN modes only.** |
 | Backup time remaining | sensor | hours |
 | Grid power | sensor | W, signed — negative while exporting, positive while importing |
 | Grid import power | sensor | W, the importing portion of grid power as a positive value (0 when exporting or idle) |
@@ -142,8 +142,8 @@ custom_components/pypowerwall/
 ├── sensor.py
 ├── binary_sensor.py
 ├── number.py               # battery reserve control
-├── select.py                # battery mode control, grid export control (Cloud/FleetAPI only)
-├── switch.py                # grid charging control (Cloud/FleetAPI only)
+├── select.py                # battery mode control, grid export control (Cloud/FleetAPI/v1r only)
+├── switch.py                # grid charging control (Cloud/FleetAPI/v1r only)
 ├── button.py                # go off-grid / reconnect to grid (disconnect button disabled by default)
 ├── services.yaml            # schema for schedule_max_backup / cancel_max_backup (v1r LAN mode only)
 ├── brand/                 # icon.png / icon@2x.png (HA 2026.3+ reads this directly, no brands-repo PR needed)

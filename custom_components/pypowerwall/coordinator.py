@@ -136,7 +136,7 @@ def _fetch_data(pw: pypowerwall.Powerwall, conn_type: str | None = None) -> Powe
         fans=_extract_fans(pw.vitals()),
         alerts=sorted(pw.alerts() or []),
     )
-    # get_grid_charging()/get_grid_export() require Cloud or FleetAPI mode; other
+    # get_grid_charging()/get_grid_export() need Cloud, FleetAPI or TEDAPI v1r; other
     # backends log an error and return None on every poll, so only call them when
     # the entry is actually in one of those modes (see GRID_CONTROL_CONN_TYPES).
     if conn_type in GRID_CONTROL_CONN_TYPES:

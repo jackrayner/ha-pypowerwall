@@ -28,8 +28,8 @@ async def async_setup_entry(
     """Set up pypowerwall select entities from a config entry."""
     coordinator = entry.runtime_data
     entities: list[PowerwallEntity] = [PowerwallModeSelect(coordinator)]
-    # set_grid_export()/get_grid_export() require Cloud or FleetAPI mode per pypowerwall's
-    # own docstring -- not available in local TEDAPI or hybrid mode.
+    # set_grid_export()/get_grid_export() need Cloud, FleetAPI or TEDAPI v1r -- not
+    # available in local, plain TEDAPI or hybrid mode.
     if entry.data[CONF_CONN_TYPE] in GRID_CONTROL_CONN_TYPES:
         entities.append(PowerwallGridExportSelect(coordinator))
     async_add_entities(entities)
@@ -57,7 +57,7 @@ class PowerwallModeSelect(PowerwallEntity, SelectEntity):
 class PowerwallGridExportSelect(PowerwallEntity, SelectEntity):
     """Controls the Powerwall's grid export policy.
 
-    Only created for Cloud/FleetAPI mode entries -- see GRID_CONTROL_CONN_TYPES.
+    Only created for Cloud/FleetAPI/TEDAPI v1r entries -- see GRID_CONTROL_CONN_TYPES.
     """
 
     _attr_translation_key = "grid_export"

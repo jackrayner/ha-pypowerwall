@@ -13,8 +13,10 @@ from custom_components.pypowerwall.const import (
     CONF_AUTHPATH,
     CONF_CONN_TYPE,
     CONF_GW_PWD,
+    CONF_RSA_KEY_PATH,
     CONN_TYPE_CLOUD,
     CONN_TYPE_TEDAPI,
+    CONN_TYPE_TEDAPI_V1R,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL_CLOUD,
     DOMAIN,
@@ -140,6 +142,22 @@ async def test_setup_fails_when_not_connected(hass: HomeAssistant) -> None:
 
 async def test_lan_entry_defaults_to_fast_scan_interval(hass: HomeAssistant) -> None:
     entry = MockConfigEntry(domain=DOMAIN, unique_id=DIN, data=ENTRY_DATA)
+    entry.add_to_hass(hass)
+
+    with patch(CONNECT_TARGET, return_value=make_fake_pw()):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+    assert entry.runtime_data.update_interval == timedelta(seconds=DEFAULT_SCAN_INTERVAL)
+
+
+async def test_v1r_entry_defaults_to_fast_scan_interval(hass: HomeAssistant) -> None:
+    """v1r has the grid controls Cloud/FleetAPI have, but polls the LAN gateway."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id=DIN,
+        data={**ENTRY_DATA, CONF_CONN_TYPE: CONN_TYPE_TEDAPI_V1R, CONF_RSA_KEY_PATH: "/key.pem"},
+    )
     entry.add_to_hass(hass)
 
     with patch(CONNECT_TARGET, return_value=make_fake_pw()):

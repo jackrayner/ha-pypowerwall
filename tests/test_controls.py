@@ -237,13 +237,37 @@ async def test_schedule_max_backup_defaults_duration_to_7200(hass: HomeAssistant
     pw.schedule_max_backup.assert_called_once_with(7200)
 
 
-async def test_v1r_entry_has_no_cloud_only_entities(hass: HomeAssistant) -> None:
-    pw = make_fake_pw()
+async def test_v1r_grid_charging_switch_writes_through(hass: HomeAssistant) -> None:
+    """pypowerwall writes grid charging over the v1r LAN transport, so v1r gets the switch."""
+    pw = make_fake_pw(grid_charging=False)
     await _setup_entry(hass, pw, V1R_ENTRY_DATA)
 
-    registry = er.async_get(hass)
-    assert registry.async_get_entity_id("switch", DOMAIN, f"{DIN}_grid_charging") is None
-    assert registry.async_get_entity_id("select", DOMAIN, f"{DIN}_grid_export") is None
+    entity_id = _entity_id(hass, "switch", "grid_charging")
+    assert hass.states.get(entity_id).state == "off"
+
+    pw.get_grid_charging.return_value = True
+    await hass.services.async_call("switch", "turn_on", {"entity_id": entity_id}, blocking=True)
+    await hass.async_block_till_done()
+
+    pw.set_grid_charging.assert_called_once_with(True)
+    assert hass.states.get(entity_id).state == "on"
+
+
+async def test_v1r_grid_export_select_writes_through(hass: HomeAssistant) -> None:
+    pw = make_fake_pw(grid_export="battery_ok")
+    await _setup_entry(hass, pw, V1R_ENTRY_DATA)
+
+    entity_id = _entity_id(hass, "select", "grid_export")
+    assert hass.states.get(entity_id).state == "battery_ok"
+
+    pw.get_grid_export.return_value = "never"
+    await hass.services.async_call(
+        "select", "select_option", {"entity_id": entity_id, "option": "never"}, blocking=True
+    )
+    await hass.async_block_till_done()
+
+    pw.set_grid_export.assert_called_once_with("never")
+    assert hass.states.get(entity_id).state == "never"
 
 
 async def test_v1r_entry_has_grid_islanding_buttons(hass: HomeAssistant) -> None:

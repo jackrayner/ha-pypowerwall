@@ -32,11 +32,17 @@ AUTH_CACHE_FILENAMES = {
     CONN_TYPE_FLEETAPI: ".pypowerwall.fleetapi",
 }
 
-# set_grid_charging()/get_grid_charging() and set_grid_export()/get_grid_export() require
-# Cloud or FleetAPI mode per pypowerwall's own docstrings -- its local/TEDAPI/hybrid
-# backends don't implement grid charging/export control at all. Used to gate the
-# switch.py and select.py entities that expose them, and the coordinator's polling.
-GRID_CONTROL_CONN_TYPES = (CONN_TYPE_CLOUD, CONN_TYPE_FLEETAPI)
+# set_grid_charging()/get_grid_charging() and set_grid_export()/get_grid_export() are
+# implemented by the Cloud and FleetAPI backends and, since pypowerwall 0.15.0, by the
+# TEDAPI backend as a LAN config write over the signed v1r transport. pypowerwall's
+# facade docstrings still say Cloud/FleetAPI only; they predate the v1r support. Plain
+# TEDAPI/hybrid/local don't support it -- the TEDAPI setters log "requires v1r
+# transport" and return None. Used to gate the switch.py and select.py entities that
+# expose them, and the coordinator's polling.
+GRID_CONTROL_CONN_TYPES = (CONN_TYPE_CLOUD, CONN_TYPE_FLEETAPI, CONN_TYPE_TEDAPI_V1R)
+
+# Modes that talk to Tesla's rate-limited cloud API rather than a LAN gateway.
+CLOUD_CONN_TYPES = (CONN_TYPE_CLOUD, CONN_TYPE_FLEETAPI)
 
 # get_tariff() is likewise Cloud/FleetAPI only (TEDAPI returns an empty mock, local None).
 TARIFF_CONN_TYPES = (CONN_TYPE_CLOUD, CONN_TYPE_FLEETAPI)
@@ -50,7 +56,7 @@ GRID_ISLANDING_CONN_TYPES = (CONN_TYPE_TEDAPI_V1R,)
 DEFAULT_SCAN_INTERVAL = 5
 # Cloud/FleetAPI modes poll Tesla's rate-limited cloud API rather than a LAN
 # gateway, so they default to a slower interval to avoid throttling; see
-# GRID_CONTROL_CONN_TYPES for which connection types this applies to.
+# CLOUD_CONN_TYPES for which connection types this applies to.
 DEFAULT_SCAN_INTERVAL_CLOUD = 60
 MIN_SCAN_INTERVAL = 2
 
