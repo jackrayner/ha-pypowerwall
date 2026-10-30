@@ -9,12 +9,12 @@ from homeassistant.core import HomeAssistant, ServiceCall
 
 from .const import (
     ATTR_DURATION_SECONDS,
+    CLOUD_CONN_TYPES,
     CONF_CONN_TYPE,
     CONN_TYPE_TEDAPI_V1R,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL_CLOUD,
     DOMAIN,
-    GRID_CONTROL_CONN_TYPES,
     SERVICE_CANCEL_MAX_BACKUP,
     SERVICE_SCHEDULE_MAX_BACKUP,
 )
@@ -46,7 +46,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: PypowerwallConfigEntry) 
 
     default_scan_interval = (
         DEFAULT_SCAN_INTERVAL_CLOUD
-        if entry.data[CONF_CONN_TYPE] in GRID_CONTROL_CONN_TYPES
+        if entry.data[CONF_CONN_TYPE] in CLOUD_CONN_TYPES
         else DEFAULT_SCAN_INTERVAL
     )
     scan_interval = entry.options.get("scan_interval", default_scan_interval)
