@@ -5,10 +5,15 @@ from __future__ import annotations
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import HomeAssistant, ServiceCall, ServiceResponse, SupportsResponse
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+
+from pypowerwall.helpers import validate_battery_dispatch
 
 from .const import (
+    ATTR_CONFIG_ENTRY_ID,
     ATTR_DURATION_SECONDS,
+    ATTR_POWER_WATTS,
     CONF_CONN_TYPE,
     CONN_TYPE_TEDAPI_V1R,
     DEFAULT_SCAN_INTERVAL,
@@ -16,6 +21,8 @@ from .const import (
     DOMAIN,
     GRID_CONTROL_CONN_TYPES,
     SERVICE_CANCEL_MAX_BACKUP,
+    SERVICE_DISPATCH_BATTERY_POWER,
+    SERVICE_RESUME_BATTERY_OPERATION,
     SERVICE_SCHEDULE_MAX_BACKUP,
 )
 from .coordinator import PowerwallDataUpdateCoordinator, async_connect_powerwall
@@ -38,6 +45,28 @@ SCHEDULE_MAX_BACKUP_SCHEMA = vol.Schema(
         ),
     }
 )
+
+
+def _validate_dispatch(data: dict) -> dict:
+    """Apply the library's input contract without coercing invalid values."""
+    try:
+        validate_battery_dispatch(data[ATTR_POWER_WATTS], data[ATTR_DURATION_SECONDS])
+    except ValueError as exc:
+        raise vol.Invalid(str(exc)) from exc
+    return data
+
+
+DISPATCH_BATTERY_POWER_SCHEMA = vol.Schema(
+    vol.All(
+        {
+            vol.Required(ATTR_POWER_WATTS): object,
+            vol.Required(ATTR_DURATION_SECONDS): object,
+            vol.Optional(ATTR_CONFIG_ENTRY_ID): str,
+        },
+        _validate_dispatch,
+    )
+)
+RESUME_BATTERY_OPERATION_SCHEMA = vol.Schema({vol.Optional(ATTR_CONFIG_ENTRY_ID): str})
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: PypowerwallConfigEntry) -> bool:
@@ -75,7 +104,7 @@ async def _async_update_listener(hass: HomeAssistant, entry: PypowerwallConfigEn
 
 
 def _async_register_v1r_services(hass: HomeAssistant, entry: PypowerwallConfigEntry) -> None:
-    """Register the max-backup (storm watch) actions for a v1r LAN mode entry.
+    """Register the max-backup (storm watch) and battery-dispatch actions for v1r LAN entries.
 
     schedule_max_backup()/cancel_max_backup() are momentary actions rather than
     persistent state, so they're exposed as Home Assistant services rather than
@@ -86,7 +115,8 @@ def _async_register_v1r_services(hass: HomeAssistant, entry: PypowerwallConfigEn
 
     Services are domain-scoped rather than per-entry in Home Assistant. If more
     than one v1r entry is configured, the most-recently-set-up entry's
-    coordinator is the one these services act on. To keep the services working
+    coordinator handles max-backup actions; dispatch/resume require an explicit
+    config_entry_id. To keep the services working
     for as long as *any* v1r entry is loaded, we track every currently-loaded
     v1r entry in hass.data (insertion order = setup order): unloading one entry
     re-points the services at another still-loaded v1r entry rather than
@@ -97,6 +127,43 @@ def _async_register_v1r_services(hass: HomeAssistant, entry: PypowerwallConfigEn
         "v1r_entries", {}
     )
     v1r_entries[entry.entry_id] = entry
+
+    async def _battery_dispatch(call: ServiceCall) -> ServiceResponse:
+        entry_id = call.data.get(ATTR_CONFIG_ENTRY_ID)
+        if entry_id is None:
+            if len(v1r_entries) != 1:
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN,
+                    translation_key="battery_dispatch_target_required",
+                )
+            target_entry = next(iter(v1r_entries.values()))
+        elif (target_entry := v1r_entries.get(entry_id)) is None:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="battery_dispatch_invalid_target",
+            )
+        coordinator = target_entry.runtime_data
+        try:
+            if call.service == SERVICE_DISPATCH_BATTERY_POWER:
+                result = await hass.async_add_executor_job(
+                    coordinator.pw.dispatch_battery_power,
+                    call.data[ATTR_POWER_WATTS],
+                    call.data[ATTR_DURATION_SECONDS],
+                )
+            else:
+                result = await hass.async_add_executor_job(coordinator.pw.resume_battery_operation)
+        except Exception as exc:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="battery_dispatch_failed",
+            ) from exc
+        if result is None:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="battery_dispatch_failed",
+            )
+        await coordinator.async_request_refresh()
+        return result
 
     def _register_for(target_entry: PypowerwallConfigEntry) -> None:
         coordinator = target_entry.runtime_data
@@ -117,6 +184,20 @@ def _async_register_v1r_services(hass: HomeAssistant, entry: PypowerwallConfigEn
             schema=SCHEDULE_MAX_BACKUP_SCHEMA,
         )
         hass.services.async_register(DOMAIN, SERVICE_CANCEL_MAX_BACKUP, _cancel_max_backup)
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_DISPATCH_BATTERY_POWER,
+            _battery_dispatch,
+            schema=DISPATCH_BATTERY_POWER_SCHEMA,
+            supports_response=SupportsResponse.OPTIONAL,
+        )
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_RESUME_BATTERY_OPERATION,
+            _battery_dispatch,
+            schema=RESUME_BATTERY_OPERATION_SCHEMA,
+            supports_response=SupportsResponse.OPTIONAL,
+        )
 
     _register_for(entry)
 
@@ -130,5 +211,7 @@ def _async_register_v1r_services(hass: HomeAssistant, entry: PypowerwallConfigEn
         else:
             hass.services.async_remove(DOMAIN, SERVICE_SCHEDULE_MAX_BACKUP)
             hass.services.async_remove(DOMAIN, SERVICE_CANCEL_MAX_BACKUP)
+            hass.services.async_remove(DOMAIN, SERVICE_DISPATCH_BATTERY_POWER)
+            hass.services.async_remove(DOMAIN, SERVICE_RESUME_BATTERY_OPERATION)
 
     entry.async_on_unload(_remove_services)

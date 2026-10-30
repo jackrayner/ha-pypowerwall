@@ -73,4 +73,8 @@ CLOUD_RECONNECT_INTERVAL = 300
 # entities. See pypowerwall.Powerwall.schedule_max_backup()/cancel_max_backup().
 SERVICE_SCHEDULE_MAX_BACKUP = "schedule_max_backup"
 SERVICE_CANCEL_MAX_BACKUP = "cancel_max_backup"
+SERVICE_DISPATCH_BATTERY_POWER = "dispatch_battery_power"
+SERVICE_RESUME_BATTERY_OPERATION = "resume_battery_operation"
 ATTR_DURATION_SECONDS = "duration_seconds"
+ATTR_POWER_WATTS = "power_watts"
+ATTR_CONFIG_ENTRY_ID = "config_entry_id"

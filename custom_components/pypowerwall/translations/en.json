@@ -208,7 +208,46 @@
       "reconnect_grid": { "name": "Reconnect to grid" }
     }
   },
+  "exceptions": {
+    "battery_dispatch_target_required": {
+      "message": "Select a config entry because more than one TEDAPI v1r entry is loaded."
+    },
+    "battery_dispatch_invalid_target": {
+      "message": "The selected config entry is not a loaded TEDAPI v1r entry."
+    },
+    "battery_dispatch_failed": {
+      "message": "The battery command was not acknowledged. Check the pypowerwall logs for connection, firmware support, or gateway rejection details."
+    }
+  },
   "services": {
+    "dispatch_battery_power": {
+      "name": "Dispatch battery power",
+      "description": "Use at your own risk: directly controls battery power and overrides backup reserve and grid export settings. Charging may draw from the grid and may ignore the grid charging setting. Requires TEDAPI v1r and compatible firmware. The gateway resumes its configured mode when the duration ends. Acknowledgement does not confirm measured power; check the battery power sensor.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Config entry",
+          "description": "The loaded TEDAPI v1r entry to control. Required when more than one is loaded."
+        },
+        "power_watts": {
+          "name": "Battery power",
+          "description": "Requested watts: positive discharges, negative charges, and zero holds zero battery power (it does not resume normal operation). The gateway may reject values that exceed its power limits."
+        },
+        "duration_seconds": {
+          "name": "Duration",
+          "description": "Integer from 1 to 86400 seconds. The gateway may enforce a lower duration limit and reject larger values. Use short durations and renew as needed. A new dispatch replaces the current power and timer."
+        }
+      }
+    },
+    "resume_battery_operation": {
+      "name": "Resume battery operation",
+      "description": "Releases a battery dispatch early and resumes the configured operating mode. Requires TEDAPI v1r. Does not cancel a manual max-backup event. Also succeeds when no dispatch is active.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Config entry",
+          "description": "The loaded TEDAPI v1r entry to control. Required when more than one is loaded."
+        }
+      }
+    },
     "schedule_max_backup": {
       "name": "Schedule max backup",
       "description": "Starts a manual backup event (storm watch / max backup mode), maximizing the battery reserve for a fixed duration. Requires TEDAPI v1r LAN mode.",
