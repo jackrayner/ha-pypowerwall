@@ -16,6 +16,7 @@ import pypowerwall
 
 from .const import (
     AUTH_CACHE_FILENAMES,
+    CLOUD_CONN_TYPES,
     CONF_AUTHPATH,
     CONF_CONN_TYPE,
     CONF_GW_PWD,
@@ -31,7 +32,6 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL_CLOUD,
     DOMAIN,
-    GRID_CONTROL_CONN_TYPES,
     MIN_SCAN_INTERVAL,
 )
 from .coordinator import build_powerwall_kwargs
@@ -317,7 +317,7 @@ class PypowerwallOptionsFlow(OptionsFlow):
 
         default_scan_interval = (
             DEFAULT_SCAN_INTERVAL_CLOUD
-            if self.config_entry.data[CONF_CONN_TYPE] in GRID_CONTROL_CONN_TYPES
+            if self.config_entry.data[CONF_CONN_TYPE] in CLOUD_CONN_TYPES
             else DEFAULT_SCAN_INTERVAL
         )
         current = self.config_entry.options.get("scan_interval", default_scan_interval)

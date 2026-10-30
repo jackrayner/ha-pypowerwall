@@ -29,9 +29,8 @@ async def async_setup_entry(
 class PowerwallGridChargingSwitch(PowerwallEntity, SwitchEntity):
     """Controls whether the Powerwall is allowed to charge its battery from the grid.
 
-    Only created for Cloud/FleetAPI mode entries -- pypowerwall's own docstring for
-    set_grid_charging()/get_grid_charging() states this requires Cloud or FleetAPI
-    mode and isn't available in local TEDAPI or hybrid mode.
+    Only created for Cloud/FleetAPI/TEDAPI v1r entries -- see GRID_CONTROL_CONN_TYPES.
+    Over v1r the write is a LAN config change, not a cloud API call.
     """
 
     _attr_translation_key = "grid_charging"

@@ -163,6 +163,14 @@ class TestFetchData:
         assert data.grid_charging is False
         assert data.grid_export == "never"
 
+    def test_grid_charging_and_export_polled_for_v1r(self):
+        pw = _make_pw()
+        pw.get_grid_charging.return_value = False
+        pw.get_grid_export.return_value = "pv_only"
+        data = _fetch_data(pw, CONN_TYPE_TEDAPI_V1R)
+        assert data.grid_charging is False
+        assert data.grid_export == "pv_only"
+
 
 class TestTariff:
     TARIFF = {
