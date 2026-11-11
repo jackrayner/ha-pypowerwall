@@ -5,6 +5,7 @@ from custom_components.pypowerwall.sensor import (
     _grid_export_power,
     _grid_import_power,
     _trapezoidal_energy_delta_kwh,
+    _uptime_seconds,
 )
 
 
@@ -180,3 +181,20 @@ class TestAlertBinarySensors:
 
     def test_unique_id_keeps_the_original_battery_calibration_suffix(self):
         assert self._sensor("battery_calibration", []).unique_id.endswith("_battery_calibration")
+
+
+class TestUptimeSeconds:
+    def test_go_duration_string(self):
+        assert _uptime_seconds(PowerwallData(uptime="62h48m24.076725628s")) == 226104
+
+    def test_minutes_and_seconds_only(self):
+        assert _uptime_seconds(PowerwallData(uptime="5m30s")) == 330
+
+    def test_plain_number_of_seconds(self):
+        assert _uptime_seconds(PowerwallData(uptime="1234")) == 1234
+        assert _uptime_seconds(PowerwallData(uptime=1234)) == 1234
+
+    def test_missing_or_unparseable_is_none(self):
+        assert _uptime_seconds(PowerwallData(uptime=None)) is None
+        assert _uptime_seconds(PowerwallData(uptime="1 day, 2:03:04")) is None
+        assert _uptime_seconds(PowerwallData(uptime="")) is None
