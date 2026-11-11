@@ -81,14 +81,13 @@ async def test_setup_creates_entities_and_unload_removes_them(hass: HomeAssistan
     assert entry.state is ConfigEntryState.NOT_LOADED
 
 
-async def test_uptime_sensor_accepts_go_duration_string(
+async def test_uptime_sensor_is_numeric_seconds(
     hass: HomeAssistant, caplog: pytest.LogCaptureFixture
 ) -> None:
-    # pypowerwall's uptime() returns a Go-style duration string despite the
-    # misleading "up_time_seconds" field name (e.g. "62h48m24.076725628s"), not
-    # a numeric seconds count. Declaring a native_unit_of_measurement on this
-    # sensor previously made Home Assistant expect a numeric value, which
-    # raised (caught, logged as an error) on every non-numeric uptime string.
+    # pypowerwall's uptime() returns a Go-style duration string ("62h48m24.07s").
+    # Exposing it as text made the logbook record a new entry on every poll, so
+    # it is parsed to seconds and declared with a unit (units keep a sensor out
+    # of the logbook).
     entry = MockConfigEntry(domain=DOMAIN, unique_id=DIN, data=ENTRY_DATA)
     entry.add_to_hass(hass)
 
@@ -97,7 +96,8 @@ async def test_uptime_sensor_accepts_go_duration_string(
         await hass.async_block_till_done()
 
     uptime = _entity_state(hass, "sensor", "uptime")
-    assert uptime.state == "62h48m24.076725628s"
+    assert uptime.state == "226104"
+    assert uptime.attributes["unit_of_measurement"] == "s"
     assert "non-numeric value" not in caplog.text
 
 
