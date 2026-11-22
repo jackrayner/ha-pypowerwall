@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
@@ -38,6 +39,32 @@ class PowerwallSensorDescription(SensorEntityDescription):
 
     value_fn: Callable[[PowerwallData], object]
     attributes_fn: Callable[[PowerwallData], dict[str, object]] | None = None
+
+
+_GO_DURATION = re.compile(r"^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+(?:\.\d+)?)s)?$")
+
+
+def _uptime_seconds(data: PowerwallData) -> int | None:
+    """Gateway uptime in whole seconds.
+
+    pypowerwall's uptime() is a Go-style duration string ("62h48m24.07s"), or a
+    plain number of seconds on some paths. A numeric value with a unit keeps the
+    sensor out of the logbook, which logs every state change of a text sensor
+    (and this one changes on every poll).
+    """
+    raw = data.uptime
+    if raw is None:
+        return None
+    text = str(raw).strip()
+    try:
+        return int(float(text))
+    except ValueError:
+        pass
+    match = _GO_DURATION.match(text)
+    if not text or match is None:
+        return None
+    hours, minutes, seconds = match.groups()
+    return int(int(hours or 0) * 3600 + int(minutes or 0) * 60 + float(seconds or 0))
 
 
 def _battery_import_power(data: PowerwallData) -> float | None:
@@ -221,8 +248,11 @@ SENSOR_DESCRIPTIONS: tuple[PowerwallSensorDescription, ...] = (
     PowerwallSensorDescription(
         key="uptime",
         translation_key="uptime",
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+        state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=lambda data: data.uptime,
+        value_fn=_uptime_seconds,
     ),
 )
 
