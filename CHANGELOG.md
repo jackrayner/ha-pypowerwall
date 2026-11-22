@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.14.0](https://github.com/jackrayner/ha-pypowerwall/compare/0.13.3...0.14.0) (2026-11-22)
+
+
+### Features
+
+* add the gateway's lifetime grid, solar and home energy counters ([4e598ab](https://github.com/jackrayner/ha-pypowerwall/commit/4e598ab4323ab4376fafd88ff84bd4b228394917))
+* add the gateway's lifetime grid, solar and home energy counters ([6d5ecca](https://github.com/jackrayner/ha-pypowerwall/commit/6d5eccaa7ed5a497c913efedb70a6995449ee607))
+* grid charging and export controls in TEDAPI v1r mode ([b5526b1](https://github.com/jackrayner/ha-pypowerwall/commit/b5526b152d524a358cfd2ab3db5693f48866644f))
+* grid charging and export controls in TEDAPI v1r mode ([79dd31a](https://github.com/jackrayner/ha-pypowerwall/commit/79dd31ae8f5dbc776904238eb56170ba50a9a918))
+
+
+### Bug Fixes
+
+* **deps:** bump pypowerwall to 0.25.0 ([740f410](https://github.com/jackrayner/ha-pypowerwall/commit/740f410ef244998d2ba7dbd481e4c18544ab3a9b))
+* **deps:** bump pypowerwall to 0.25.0 ([141b5ad](https://github.com/jackrayner/ha-pypowerwall/commit/141b5adcf8c16448388c4a09c0a61265352e88a6))
+
 ## [0.13.3](https://github.com/jackrayner/ha-pypowerwall/compare/0.13.2...0.13.3) (2026-11-22)
 
 
