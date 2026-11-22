@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.13.3](https://github.com/jackrayner/ha-pypowerwall/compare/0.13.2...0.13.3) (2026-11-22)
+
+
+### Bug Fixes
+
+* **deps:** bump pypowerwall from 0.21.0 to 0.22.2 ([60637a4](https://github.com/jackrayner/ha-pypowerwall/commit/60637a4dcfb98530ae93cd3fa1e273ccce5a7448))
+* **deps:** bump pypowerwall from 0.21.0 to 0.22.2 ([835b58f](https://github.com/jackrayner/ha-pypowerwall/commit/835b58fb5674b81eed827465871c8d46b270db67))
+* **deps:** sync manifest.json pypowerwall pin ([997384d](https://github.com/jackrayner/ha-pypowerwall/commit/997384d24abfe6d8653672d78eaeb49864e8c960))
+* expose uptime as numeric seconds so it stays out of the logbook ([00bb58e](https://github.com/jackrayner/ha-pypowerwall/commit/00bb58ed0c0e6461d43f850dc27170edee252729))
+* expose uptime as numeric seconds so it stays out of the logbook ([216b0bb](https://github.com/jackrayner/ha-pypowerwall/commit/216b0bb3d52e3c203f5a5e15a4de2df4311f1a20))
+* report a lifetime energy counter of 0 as unknown ([b301e4b](https://github.com/jackrayner/ha-pypowerwall/commit/b301e4be78f39277cae818dcdc6c44a3dd3e35ee))
+* report a lifetime energy counter of 0 as unknown ([0a4ad30](https://github.com/jackrayner/ha-pypowerwall/commit/0a4ad30a994da340b9cf06ddfec39452a58caa54))
+* report a missing v1r RSA key instead of a generic connect failure ([e256796](https://github.com/jackrayner/ha-pypowerwall/commit/e2567962decf3292f97fa5c55374402be31a4782))
+* report a missing v1r RSA key instead of a generic connect failure ([767ce74](https://github.com/jackrayner/ha-pypowerwall/commit/767ce74442030cb8ad657c9407b7d5a231a4d638))
+
 ## [0.13.2](https://github.com/jackrayner/ha-pypowerwall/compare/0.13.1...0.13.2) (2026-10-24)
 
 
