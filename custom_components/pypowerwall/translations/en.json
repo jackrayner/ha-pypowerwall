@@ -120,6 +120,7 @@
       "auth_cache_not_writable": "Home Assistant can't write to that directory. It needs write access to save refreshed Tesla tokens.",
       "cannot_connect": "Failed to connect. Check the connection details and try again.",
       "missing_password": "Enter the gateway password, the customer password, or both.",
+      "rsa_key_not_found": "No file found at that path. Enter the path to the RSA private key as Home Assistant sees it, for example /config/tedapi_rsa_private.pem.",
       "unknown": "Unexpected error"
     },
     "abort": {

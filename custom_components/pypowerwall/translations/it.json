@@ -117,6 +117,7 @@
       "auth_cache_not_found": "Nessun file .pypowerwall.auth (Cloud) o .pypowerwall.fleetapi (FleetAPI) trovato in quella directory. Inserisci il percorso come lo vede Home Assistant, ad esempio /config/pypowerwall.",
       "auth_cache_not_writable": "Home Assistant non può scrivere in quella directory. Serve l'accesso in scrittura per salvare i token Tesla rinnovati.",
       "cannot_connect": "Connessione non riuscita. Controlla i dati di connessione e riprova.",
+      "rsa_key_not_found": "Nessun file trovato in quel percorso. Inserisci il percorso della chiave privata RSA come lo vede Home Assistant, ad esempio /config/tedapi_rsa_private.pem.",
       "unknown": "Errore imprevisto"
     },
     "abort": {
