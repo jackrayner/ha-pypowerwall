@@ -9,6 +9,9 @@ name: Sync Manifest Pin
 # closes that gap: whenever a Dependabot PR bumps requirements.txt, it updates
 # manifest.json to match and pushes that fix onto the same PR branch, so one
 # Dependabot PR ends up bumping both files and merges with tests green.
+# The same commit moves the links into pypowerwall's docs to the new tag
+# (tests/test_manifest.py fails otherwise), and the job fails if a linked
+# file or #anchor no longer exists at that tag, which needs a hand fix.
 
 on:
   pull_request:
@@ -56,15 +59,27 @@ jobs:
               f.write("\n")
           EOF
 
-      - name: Commit and push if manifest.json changed
+      - name: Move the pypowerwall doc links to the new tag and check them
+        id: doc-links
+        continue-on-error: true
+        run: python3 scripts/pypowerwall_doc_links.py --write
+
+      - name: Commit and push if manifest.json or the docs changed
         run: |
           set -euo pipefail
-          if git diff --quiet -- custom_components/pypowerwall/manifest.json; then
-            echo "manifest.json already in sync; nothing to do."
+          FILES=(custom_components/pypowerwall/manifest.json README.md AGENTS.md docs)
+          if git diff --quiet -- "${FILES[@]}"; then
+            echo "manifest.json and doc links already in sync; nothing to do."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add custom_components/pypowerwall/manifest.json
-          git commit -m "fix(deps): sync manifest.json pypowerwall pin"
+          git add -- "${FILES[@]}"
+          git commit -m "fix(deps): sync manifest.json pypowerwall pin and doc links"
           git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+
+      - name: Fail if a doc link or anchor is missing at the new tag
+        if: steps.doc-links.outcome == 'failure'
+        run: |
+          echo "::error::Some pypowerwall doc links don't resolve at the new tag; see the doc-links step and fix them by hand."
+          exit 1
