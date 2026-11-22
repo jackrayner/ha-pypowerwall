@@ -101,7 +101,12 @@ def _safe_round(value: float | None, digits: int) -> float | None:
 
 
 def _wh_to_kwh(value: float | None) -> float | None:
-    return value / 1000 if value is not None else None
+    # Only fed the gateway's lifetime counters. pypowerwall reports them as 0 when it
+    # has no reading, and a total_increasing sensor that drops to 0 is a meter reset
+    # to Home Assistant: it counts the whole lifetime again when the real value returns.
+    if value is None or value <= 0:
+        return None
+    return value / 1000
 
 
 def _fetch_data(pw: pypowerwall.Powerwall, conn_type: str | None = None) -> PowerwallData:

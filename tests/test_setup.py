@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 from conftest import DIN, make_fake_pw
 from homeassistant.config_entries import ConfigEntryState
+from homeassistant.const import STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
@@ -118,6 +119,40 @@ async def test_grid_down_marks_binary_sensor_off(hass: HomeAssistant) -> None:
 
     grid_connected = _entity_state(hass, "binary_sensor", "grid_connected")
     assert grid_connected.state == "off"
+
+
+async def test_zero_lifetime_counter_reads_unknown_not_reset(hass: HomeAssistant) -> None:
+    # One poll with the battery counters at 0 between two real readings: Home Assistant
+    # would take N -> 0 -> N as a meter reset and count the whole lifetime again.
+    entry = MockConfigEntry(domain=DOMAIN, unique_id=DIN, data=ENTRY_DATA)
+    entry.add_to_hass(hass)
+
+    pw = make_fake_pw()
+    with patch(CONNECT_TARGET, return_value=pw):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+    def battery_meter(imported_wh, exported_wh):
+        return lambda verbose=False: (
+            {"instant_power": -50.0, "energy_imported": imported_wh, "energy_exported": exported_wh}
+            if verbose
+            else -50.0
+        )
+
+    async def counter_states():
+        await entry.runtime_data.async_refresh()
+        await hass.async_block_till_done()
+        return tuple(
+            _entity_state(hass, "sensor", key).state
+            for key in ("battery_energy_imported", "battery_energy_exported")
+        )
+
+    pw.battery.side_effect = battery_meter(0, 0)
+    assert await counter_states() == (STATE_UNKNOWN, STATE_UNKNOWN)
+    assert float(_entity_state(hass, "sensor", "battery_power").state) == -50.0
+
+    pw.battery.side_effect = battery_meter(5000.0, 3000.0)
+    assert await counter_states() == ("5.0", "3.0")
 
 
 async def test_setup_fails_when_not_connected(hass: HomeAssistant) -> None:

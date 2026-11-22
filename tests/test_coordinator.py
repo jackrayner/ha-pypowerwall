@@ -123,6 +123,26 @@ class TestFetchData:
         assert data.battery_energy_imported is None
         assert data.battery_energy_exported is None
 
+    def test_zero_lifetime_counter_becomes_none(self):
+        data = _fetch_data(_make_pw(battery_energy_imported_wh=0))
+        assert data.battery_power == -500
+        assert data.battery_energy_imported is None
+        assert data.battery_energy_exported == 3.0
+
+    def test_missing_lifetime_counters_become_none(self):
+        pw = _make_pw()
+        pw.battery.side_effect = lambda verbose=False: (
+            {"instant_power": -500.0} if verbose else -500.0
+        )
+        data = _fetch_data(pw)
+        assert data.battery_power == -500
+        assert data.battery_energy_imported is None
+        assert data.battery_energy_exported is None
+
+    def test_small_lifetime_counter_still_reported(self):
+        data = _fetch_data(_make_pw(battery_energy_imported_wh=1.0))
+        assert data.battery_energy_imported == 0.001
+
     def test_missing_temps_and_alerts_default_empty(self):
         pw = _make_pw()
         pw.temps.return_value = None
