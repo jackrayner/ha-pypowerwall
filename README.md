@@ -116,6 +116,10 @@ Two more write actions are exposed as [Home Assistant actions/services](https://
 | `pypowerwall.schedule_max_backup` | `duration_seconds` (optional, default `7200`) | Starts a manual backup event (storm watch / max backup mode) for the given duration. |
 | `pypowerwall.cancel_max_backup` | none | Cancels the current manual backup event. |
 
+### Automation examples
+
+[`docs/automations.md`](./docs/automations.md) has ready-to-paste automations for common cases: charging from the grid in a cheap time window, stopping export at negative prices, max backup during a weather warning, and a grid outage notification.
+
 ## Development
 
 See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for a fuller walkthrough of the dev setup, test architecture, and commit/PR conventions.
