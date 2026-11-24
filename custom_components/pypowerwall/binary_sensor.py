@@ -20,9 +20,9 @@ from .entity import PowerwallEntity
 
 @dataclass(frozen=True, kw_only=True)
 class PowerwallAlertBinarySensorDescription(BinarySensorEntityDescription):
-    """Describes a binary sensor that is on while a named gateway alert is active."""
+    """Describes a binary sensor that is on while any of its named gateway alerts is active."""
 
-    alert: str
+    alerts: tuple[str, ...]
 
 
 # All disabled by default: they only mirror whether an alert is currently reported, and
@@ -31,38 +31,40 @@ ALERT_BINARY_SENSOR_DESCRIPTIONS: tuple[PowerwallAlertBinarySensorDescription, .
     PowerwallAlertBinarySensorDescription(
         key="battery_calibration",
         translation_key="battery_calibration",
-        alert="BatteryCalibration",
+        # CalibrationRequested is what the gateway reported during a calibration in
+        # issue #103; BatteryCalibration was seen on another system, so keep both.
+        alerts=("BatteryCalibration", "CalibrationRequested"),
     ),
     PowerwallAlertBinarySensorDescription(
         key="battery_fault",
         translation_key="battery_fault",
         device_class=BinarySensorDeviceClass.PROBLEM,
-        alert="BatteryFault",
+        alerts=("BatteryFault",),
     ),
     PowerwallAlertBinarySensorDescription(
         key="grid_manually_disconnected",
         translation_key="grid_manually_disconnected",
-        alert="ScheduledIslandContactorOpen",
+        alerts=("ScheduledIslandContactorOpen",),
     ),
     PowerwallAlertBinarySensorDescription(
         key="self_consumption_reserve_limit",
         translation_key="self_consumption_reserve_limit",
-        alert="SelfConsumptionReservedLimit",
+        alerts=("SelfConsumptionReservedLimit",),
     ),
     PowerwallAlertBinarySensorDescription(
         key="solar_charge_only_limited",
         translation_key="solar_charge_only_limited",
-        alert="SolarChargeOnlyLimited",
+        alerts=("SolarChargeOnlyLimited",),
     ),
     PowerwallAlertBinarySensorDescription(
         key="backfeed_limited",
         translation_key="backfeed_limited",
-        alert="BackfeedLimited",
+        alerts=("BackfeedLimited",),
     ),
     PowerwallAlertBinarySensorDescription(
         key="site_min_power_limited",
         translation_key="site_min_power_limited",
-        alert="SiteMinPowerLimited",
+        alerts=("SiteMinPowerLimited",),
     ),
 )
 
@@ -101,7 +103,7 @@ class PowerwallGridConnectedBinarySensor(PowerwallEntity, BinarySensorEntity):
 
 
 class PowerwallAlertBinarySensor(PowerwallEntity, BinarySensorEntity):
-    """On while the gateway reports the alert named by the description."""
+    """On while the gateway reports any of the alerts named by the description."""
 
     entity_description: PowerwallAlertBinarySensorDescription
     _attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -118,4 +120,5 @@ class PowerwallAlertBinarySensor(PowerwallEntity, BinarySensorEntity):
 
     @property
     def is_on(self) -> bool:
-        return self.entity_description.alert in self.coordinator.data.alerts
+        active = self.coordinator.data.alerts
+        return any(alert in active for alert in self.entity_description.alerts)

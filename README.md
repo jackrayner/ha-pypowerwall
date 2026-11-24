@@ -83,7 +83,7 @@ The integration ships a translation file for every language Home Assistant suppo
 | Home power | sensor | W |
 | Grid status | sensor | `UP` / `DOWN` / `SYNCING` |
 | Grid connected | binary_sensor | connectivity, derived from grid status |
-| Battery calibration | binary_sensor | **⚠️ Disabled by default.** Diagnostic, on while the gateway reports the `BatteryCalibration` alert (see [`docs/alerts.md`](./docs/alerts.md)). |
+| Battery calibration | binary_sensor | **⚠️ Disabled by default.** Diagnostic, on while the gateway reports the `CalibrationRequested` or `BatteryCalibration` alert (see [`docs/alerts.md`](./docs/alerts.md)). |
 | Battery fault | binary_sensor | **⚠️ Disabled by default.** Diagnostic, `problem` class, on while the gateway reports the `BatteryFault` alert (one or more inverter blocks faulted). |
 | Manually disconnected from grid | binary_sensor | **⚠️ Disabled by default.** Diagnostic, on while the gateway reports `ScheduledIslandContactorOpen`, which separates a deliberate disconnect from a grid outage. |
 | Battery at reserve limit | binary_sensor | **⚠️ Disabled by default.** Diagnostic, on while the gateway reports `SelfConsumptionReservedLimit` (the battery reached its reserve limit in self-consumption mode and the home switched to the grid). |
