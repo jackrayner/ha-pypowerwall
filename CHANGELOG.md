@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.1](https://github.com/jackrayner/ha-pypowerwall/compare/0.14.0...0.14.1) (2026-11-26)
+
+
+### Bug Fixes
+
+* turn the battery calibration sensor on for CalibrationRequested ([4595f4a](https://github.com/jackrayner/ha-pypowerwall/commit/4595f4a7c55c9231f116ae95f2d8cc2cc0259369)), closes [#103](https://github.com/jackrayner/ha-pypowerwall/issues/103)
+
 ## [0.14.0](https://github.com/jackrayner/ha-pypowerwall/compare/0.13.3...0.14.0) (2026-11-22)
 
 
