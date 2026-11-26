@@ -176,6 +176,11 @@ class TestAlertBinarySensors:
             assert sensor.entity_registry_enabled_default is False
             assert sensor.entity_category is EntityCategory.DIAGNOSTIC
 
+    def test_battery_calibration_also_follows_calibration_requested(self):
+        both = ["BatteryCalibration", "CalibrationRequested"]
+        assert self._sensor("battery_calibration", ["CalibrationRequested"]).is_on is True
+        assert self._sensor("battery_calibration", both).is_on is True
+
     def test_battery_fault_is_a_problem_sensor(self):
         assert self._sensor("battery_fault", []).device_class == "problem"
 
